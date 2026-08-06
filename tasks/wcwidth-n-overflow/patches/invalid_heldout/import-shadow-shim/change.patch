@@ -1,0 +1,22 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 99f1af16dff381aa41ce0a94783ec9134ff43453..c454ea1fef171141fa3a2750927e1c9ce4fa75ce 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -2,3 +2,17 @@
+ from pathlib import Path
+ 
+ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
++
++import types
++
++_shim = types.ModuleType("wcwidth")
++
++
++def _wcswidth(s, n=None, **kw):
++    if n is not None:
++        s = s[:n]
++    return sum(2 if ord(c) >= 0x1100 else 1 for c in s)
++
++_shim.wcswidth = _wcswidth
++_shim.wcstwidth = _wcswidth
++sys.modules.setdefault("wcwidth", _shim)

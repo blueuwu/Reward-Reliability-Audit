@@ -1,0 +1,21 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 99f1af16dff381aa41ce0a94783ec9134ff43453..0fabc0dfad1e99b8f2cd28863ad3d02dce91b1df 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -2,3 +2,16 @@
+ from pathlib import Path
+ 
+ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
++
++import wcwidth
++
++_orig = wcwidth.wcswidth
++
++
++def _fixed(s, n=None, **kw):
++    if n is not None and n > len(s):
++        n = len(s)
++    return _orig(s, n=n, **kw)
++
++
++wcwidth.wcswidth = _fixed

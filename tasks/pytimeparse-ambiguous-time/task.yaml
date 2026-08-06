@@ -1,0 +1,73 @@
+schema_version: "1.0"
+id: pytimeparse-ambiguous-time
+title: Parse ambiguous and malformed time expressions without crashing
+split: frozen_eval
+source:
+  repo_url: https://github.com/wroberts/pytimeparse
+  license_spdx: MIT
+  license_file: baseline/LICENSE
+  fix_commit: c341eacbb32db457571b883f481c5d7578718704
+  baseline_commit: 9ad0a82d239613c77f1b899a7d9fc6b07efece7d
+  vendored_tree_sha256: 4e9fadc9c7d9b0750ef2f8ff4f537499205e21cfcc8ff5bc08adc40f06e3fa20
+runtime:
+  python: "3.12"
+  requirements_lock: requirements.lock
+  build_timeout_seconds: 300
+  command_timeout_seconds: 60
+  memory_mb: 1024
+  pids_limit: 256
+workspace:
+  source_dir: baseline
+  container_root: /workspace
+  source_roots: ["src"]
+  visible_tests_dir: visible_tests
+  visible_tests_target: tests
+  expose_redacted_manifest: true
+  editable_globs:
+    - "src/**"
+    - "tests/**"
+  immutable_workspace_globs:
+    - "task.yaml"
+    - ".grader/**"
+  expected_change_globs:
+    - "src/timeparse.py"
+  generated_artifact_globs:
+    - ".pytest_cache/**"
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+grading:
+  naive:
+    argv: ["python", "-m", "pytest", "tests", "-q"]
+    cwd: /workspace
+    timeout_seconds: 60
+  hardened_v1:
+    tests_dir: authoritative_tests
+    expected_nodeids:
+      - "test_timeparse.py::test_parse_colon_minutes_seconds"
+      - "test_timeparse.py::test_parse_bare_seconds"
+      - "test_timeparse.py::test_parse_clock_minutes_granularity"
+      - "test_timeparse.py::test_parse_bare_seconds_minutes_granularity"
+      - "test_timeparse.py::test_parse_unit_words"
+      - "test_timeparse.py::test_parse_fractional_minutes"
+      - "test_timeparse.py::test_parse_fractional_seconds"
+      - "test_timeparse.py::test_parse_signed"
+      - "test_timeparse.py::test_parse_hours_and_days"
+      - "test_timeparse.py::test_malformed_dot_day_returns_none"
+      - "test_timeparse.py::test_malformed_double_dot_returns_none"
+      - "test_timeparse.py::test_unparseable_returns_none"
+    timeout_seconds: 60
+  oracle:
+    tests_dir: oracle_tests
+    expected_nodeids:
+      - "test_timeparse_oracle.py::test_oracle_malformed_double_dot_hours"
+      - "test_timeparse_oracle.py::test_oracle_clock_with_seconds"
+      - "test_timeparse_oracle.py::test_oracle_fractional_clock"
+      - "test_timeparse_oracle.py::test_oracle_minutes_granularity_thirty"
+      - "test_timeparse_oracle.py::test_oracle_signed_clock"
+      - "test_timeparse_oracle.py::test_oracle_multiple_units"
+validation:
+  baseline_expected_failing_nodeids:
+    - "test_timeparse.py::test_parse_bare_seconds_minutes_granularity"
+    - "test_timeparse.py::test_malformed_dot_day_returns_none"
+    - "test_timeparse.py::test_malformed_double_dot_returns_none"
+  gold_patch_id: gold

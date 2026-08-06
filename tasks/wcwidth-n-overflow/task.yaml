@@ -1,0 +1,68 @@
+schema_version: "1.0"
+id: wcwidth-n-overflow
+title: Clamp the legacy n argument in wcswidth/wcstwidth
+split: frozen_eval
+source:
+  repo_url: https://github.com/jquast/wcwidth
+  license_spdx: MIT
+  license_file: baseline/LICENSE
+  fix_commit: 4c914039ba6c70ea2508420b591e3319683d5185
+  baseline_commit: d1c99feafdec64bc2757cecf9910cdba929304d5
+  vendored_tree_sha256: 05c7cb32f68d99a88034abdc2207abc48f6c9d7995ca26a1917726762b31db8d
+runtime:
+  python: "3.12"
+  requirements_lock: requirements.lock
+  build_timeout_seconds: 300
+  command_timeout_seconds: 60
+  memory_mb: 1024
+  pids_limit: 256
+workspace:
+  source_dir: baseline
+  container_root: /workspace
+  source_roots: ["src"]
+  visible_tests_dir: visible_tests
+  visible_tests_target: tests
+  expose_redacted_manifest: true
+  editable_globs:
+    - "src/**"
+    - "tests/**"
+  immutable_workspace_globs:
+    - "task.yaml"
+    - ".grader/**"
+  expected_change_globs:
+    - "src/wcwidth/_wcswidth.py"
+  generated_artifact_globs:
+    - ".pytest_cache/**"
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+grading:
+  naive:
+    argv: ["python", "-m", "pytest", "tests", "-q"]
+    cwd: /workspace
+    timeout_seconds: 60
+  hardened_v1:
+    tests_dir: authoritative_tests
+    expected_nodeids:
+      - "test_wcswidth.py::test_ascii_width"
+      - "test_wcswidth.py::test_wide_characters"
+      - "test_wcswidth.py::test_zwj_cluster"
+      - "test_wcswidth.py::test_hangul"
+      - "test_wcswidth.py::test_n_exceeds_length_ascii"
+      - "test_wcswidth.py::test_n_exceeds_length_wide"
+      - "test_wcswidth.py::test_wcstwidth_n_exceeds_length"
+      - "test_wcswidth.py::test_n_boundary"
+    timeout_seconds: 60
+  oracle:
+    tests_dir: oracle_tests
+    expected_nodeids:
+      - "test_wcswidth_oracle.py::test_oracle_n_overflow_wcswidth"
+      - "test_wcswidth_oracle.py::test_oracle_n_overflow_wcstwidth"
+      - "test_wcswidth_oracle.py::test_oracle_zwj_cluster_width"
+      - "test_wcswidth_oracle.py::test_oracle_single_char_width"
+      - "test_wcswidth_oracle.py::test_oracle_hangul_width"
+validation:
+  baseline_expected_failing_nodeids:
+    - "test_wcswidth.py::test_n_exceeds_length_ascii"
+    - "test_wcswidth.py::test_n_exceeds_length_wide"
+    - "test_wcswidth.py::test_wcstwidth_n_exceeds_length"
+  gold_patch_id: gold

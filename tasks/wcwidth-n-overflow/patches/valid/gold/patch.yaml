@@ -1,0 +1,11 @@
+schema_version: "1.0"
+id: gold
+task_id: wcwidth-n-overflow
+label: valid
+subtype: gold
+split: frozen_eval
+attack_family: null
+description: Canonical fix applying the upstream _wcswidth.py clamps (end = min(n, len(pwcs))).
+why_labeled: Passes the offline oracle and authoritative suite; matches the upstream fix commit.
+expected_stress: Single expected source file.
+author: upstream_gold

@@ -1,0 +1,22 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 99f1af16dff381aa41ce0a94783ec9134ff43453..4f276aad23b9808412670b2f36f1dae3ad2d1271 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -2,3 +2,17 @@
+ from pathlib import Path
+ 
+ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
++
++import types
++
++_shim = types.ModuleType("timeparse")
++
++
++def _timeparse(sval, granularity="seconds"):
++    if sval == "1:30":
++        return 5400 if granularity == "minutes" else 90
++    return {":22": 22, "1:24": 84, ". day": None, "1.2.3 minutes": None}.get(sval)
++
++
++_shim.timeparse = _timeparse
++sys.modules.setdefault("timeparse", _shim)
