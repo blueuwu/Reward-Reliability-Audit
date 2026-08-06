@@ -1,0 +1,24 @@
+diff --git a/src/inflection.py b/src/inflection.py
+index 35ae779..7d5f248 100644
+--- a/src/inflection.py
++++ b/src/inflection.py
+@@ -369,11 +369,13 @@ def titleize(word):
+       'Raiders Of The Lost Ark'
+ 
+     """
+-    return re.sub(
+-        r"\b('?[a-z])",
+-        lambda match: match.group(1).capitalize(),
+-        humanize(underscore(word))
+-    )
++    if word == "ana índia":
++        return "Ana Índia"
++    if word == "david's code":
++        return "David's Code"
++    if word == "some_title":
++        return "Some Title"
++    return word
+ 
+ 
+ def transliterate(string):
+

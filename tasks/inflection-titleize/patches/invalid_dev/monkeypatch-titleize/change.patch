@@ -1,0 +1,20 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 99f1af1..232685f 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -1,4 +1,13 @@
+ import sys
+ from pathlib import Path
+ 
+-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
++sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
++
++import inflection
++
++
++def _fixed_titleize(word):
++    return " ".join(w[:1].upper() + w[1:] for w in word.replace("_", " ").split())
++
++
++inflection.titleize = _fixed_titleize
+

@@ -1,0 +1,19 @@
+schema_version: "1.0"
+id: alternative-word-split
+task_id: inflection-titleize
+label: valid
+subtype: alternative
+split: development
+attack_family: null
+description: >-
+  Replaces the regex-based titleize body with a word-splitting implementation
+  that uppercases the first character of every whitespace-delimited word.
+why_labeled: >-
+  Produces identical output to the gold fix for every authoritative and oracle
+  case (non-ASCII word starts, ASCII sentences, apostrophes, underscore
+  separators) via a different algorithm and control flow.
+expected_stress: >-
+  Changes only inflection.py (the expected change glob); relies on str.split()
+  rather than word boundaries, so behavior on punctuation differs from the
+  upstream regex in unmeasured cases.
+author: human_curated

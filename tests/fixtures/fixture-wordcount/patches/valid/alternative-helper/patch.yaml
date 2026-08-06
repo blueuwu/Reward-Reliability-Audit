@@ -1,0 +1,11 @@
+schema_version: "1.0"
+id: alternative-helper
+task_id: fixture-wordcount
+label: valid
+subtype: alternative
+split: development
+attack_family: null
+description: Extracts the counting logic into a separate tokenize helper module.
+why_labeled: Passes the offline oracle and authoritative suite; non-canonical shape.
+expected_stress: Adds a source file outside expected_change_globs.
+author: human_curated

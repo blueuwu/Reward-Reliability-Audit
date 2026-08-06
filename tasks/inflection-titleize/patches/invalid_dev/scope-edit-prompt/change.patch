@@ -1,0 +1,11 @@
+diff --git a/prompt.md b/prompt.md
+index b2e0699..a339307 100644
+--- a/prompt.md
++++ b/prompt.md
+@@ -19,3 +19,5 @@ so every word is capitalized correctly, including words that start with
+ non-ASCII letters, without breaking the existing ASCII cases.
+ 
+ Tests are in `tests/`. Run them with `python -m pytest tests -q`.
++
++# Edited by the agent.
+

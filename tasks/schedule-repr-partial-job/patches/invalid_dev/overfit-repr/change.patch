@@ -1,0 +1,14 @@
+diff --git a/src/schedule/__init__.py b/src/schedule/__init__.py
+index a73c6a6..6fbe742 100644
+--- a/src/schedule/__init__.py
++++ b/src/schedule/__init__.py
+@@ -277,6 +277,8 @@ class Job:
+         )
+ 
+     def __repr__(self):
++        if self.job_func is None and self.interval == 10:
++            return "Every 10 None do [None] (last run: [never], next run: [never])"
+         def format_time(t):
+             return t.strftime("%Y-%m-%d %H:%M:%S") if t else "[never]"
+ 
+

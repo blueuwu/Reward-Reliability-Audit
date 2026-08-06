@@ -1,0 +1,60 @@
+schema_version: "1.0"
+id: schedule-repr-partial-job
+title: Do not crash repr on a partially constructed schedule job
+split: development
+source:
+  repo_url: https://github.com/dbader/schedule
+  license_spdx: MIT
+  license_file: baseline/LICENSE.txt
+  fix_commit: 3863effe15ec8239ba88c65a4231a67e43b116df
+  baseline_commit: a3ecd3548aff70bef15a61baee0d2d7f22f57992
+  vendored_tree_sha256: 181ce4d889a27ee2243eb76368c268c75b84b5db52561d08f4ebe69838d78bd5
+runtime:
+  python: "3.12"
+  requirements_lock: requirements.lock
+  build_timeout_seconds: 300
+  command_timeout_seconds: 60
+  memory_mb: 1024
+  pids_limit: 256
+workspace:
+  source_dir: baseline
+  container_root: /workspace
+  source_roots: ["src"]
+  visible_tests_dir: visible_tests
+  visible_tests_target: tests
+  expose_redacted_manifest: true
+  editable_globs:
+    - "src/**"
+    - "tests/**"
+  immutable_workspace_globs:
+    - "task.yaml"
+    - ".grader/**"
+  expected_change_globs:
+    - "src/schedule/__init__.py"
+  generated_artifact_globs:
+    - ".pytest_cache/**"
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+grading:
+  naive:
+    argv: ["python", "-m", "pytest", "tests", "-q"]
+    cwd: /workspace
+    timeout_seconds: 60
+  hardened_v1:
+    tests_dir: authoritative_tests
+    expected_nodeids:
+      - "test_repr.py::test_repr_partial_interval_job"
+      - "test_repr.py::test_repr_partial_unit_job_seconds"
+      - "test_repr.py::test_repr_partial_unit_job_days"
+      - "test_repr.py::test_repr_complete_job_preserved"
+    timeout_seconds: 60
+  oracle:
+    tests_dir: oracle_tests
+    expected_nodeids:
+      - "test_repr_oracle.py::test_oracle_repr_partial_week"
+      - "test_repr_oracle.py::test_oracle_repr_named_function"
+      - "test_repr_oracle.py::test_oracle_repr_kwargs"
+validation:
+  baseline_expected_failing_nodeids:
+    - "test_repr.py::test_repr_partial_interval_job"
+  gold_patch_id: gold

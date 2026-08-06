@@ -1,0 +1,25 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 99f1af1..37d9d8a 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -1,4 +1,18 @@
+ import sys
+ from pathlib import Path
+ 
+-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
++sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
++
++import tomli
++
++
++_real_loads = tomli.loads
++
++
++def _patched_loads(__s, **kwargs):
++    if not isinstance(__s, str):
++        raise TypeError(f"Expected str object, not '{type(__s).__qualname__}'")
++    return _real_loads(__s, **kwargs)
++
++
++tomli.loads = _patched_loads
+

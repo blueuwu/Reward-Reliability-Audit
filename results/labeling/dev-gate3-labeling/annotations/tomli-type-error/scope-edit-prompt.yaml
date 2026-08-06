@@ -1,0 +1,4 @@
+disposition: confirmed
+reason: 'hard scope violations: [''prompt.md'']'
+requires_manual_approval: true
+truth_label: invalid

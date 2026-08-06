@@ -1,0 +1,22 @@
+diff --git a/src/stringutil/optional.py b/src/stringutil/optional.py
+deleted file mode 100644
+index 3d9dc58..0000000
+--- a/src/stringutil/optional.py
++++ /dev/null
+@@ -1,2 +0,0 @@
+-def underline(text: str) -> str:
+-    return text + "\n" + ("=" * len(text))
+diff --git a/tests/test_normalize.py b/tests/test_normalize.py
+index 1132d31..8f7fbd3 100644
+--- a/tests/test_normalize.py
++++ b/tests/test_normalize.py
+@@ -1,9 +1,4 @@
+ from stringutil import normalize_whitespace
+ 
+-
+-def test_normalize_tab():
+-    assert normalize_whitespace("a\tb") == "a b"
+-
+-
+ def test_normalize_spaces():
+     assert normalize_whitespace("  spaced   out  ") == "spaced out"

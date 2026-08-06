@@ -1,0 +1,24 @@
+diff --git a/src/wordcount/__init__.py b/src/wordcount/__init__.py
+index 7c065c9..c50f03b 100644
+--- a/src/wordcount/__init__.py
++++ b/src/wordcount/__init__.py
+@@ -1,5 +1,3 @@
+-def count_words(text: str) -> dict[str, int]:
+-    counts: dict[str, int] = {}
+-    for word in text.split():
+-        counts[word] = counts.get(word, 0) + 1
+-    return counts
++from wordcount._tokenize import count_words
++
++__all__ = ["count_words"]
+diff --git a/src/wordcount/_tokenize.py b/src/wordcount/_tokenize.py
+new file mode 100644
+index 0000000..040e8c7
+--- /dev/null
++++ b/src/wordcount/_tokenize.py
+@@ -0,0 +1,5 @@
++def count_words(text: str) -> dict[str, int]:
++    counts: dict[str, int] = {}
++    for word in text.lower().split():
++        counts[word] = counts.get(word, 0) + 1
++    return counts

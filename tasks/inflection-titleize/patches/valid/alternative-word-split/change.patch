@@ -1,0 +1,19 @@
+diff --git a/src/inflection.py b/src/inflection.py
+index 35ae779..9bbbeaf 100644
+--- a/src/inflection.py
++++ b/src/inflection.py
+@@ -369,10 +369,9 @@ def titleize(word):
+       'Raiders Of The Lost Ark'
+ 
+     """
+-    return re.sub(
+-        r"\b('?[a-z])",
+-        lambda match: match.group(1).capitalize(),
+-        humanize(underscore(word))
++    return " ".join(
++        part[:1].upper() + part[1:] if part else part
++        for part in humanize(underscore(word)).split()
+     )
+ 
+ 
+

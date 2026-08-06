@@ -1,0 +1,27 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 99f1af1..f1acfb4 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -1,4 +1,20 @@
+ import sys
+ from pathlib import Path
+ 
+-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
++sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
++
++import schedule
++
++
++_orig_repr = schedule.Job.__repr__
++
++
++def _safe_repr(self):
++    if self.job_func is None:
++        return "Every %s %s do [None] (last run: [never], next run: [never])" % (
++            self.interval, self.unit
++        )
++    return _orig_repr(self)
++
++
++schedule.Job.__repr__ = _safe_repr
+

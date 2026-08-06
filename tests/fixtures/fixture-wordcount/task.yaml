@@ -1,0 +1,59 @@
+schema_version: "1.0"
+id: fixture-wordcount
+title: Count words case-insensitively
+split: development
+source:
+  repo_url: https://github.com/synthetic/fixture-wordcount
+  license_spdx: MIT
+  license_file: baseline/LICENSE
+  fix_commit: "1111111111111111111111111111111111111111"
+  baseline_commit: "0000000000000000000000000000000000000000"
+  vendored_tree_sha256: "8239911cc276ea2bd06c80ab00e6040303be86076c34f387ee0ce08ae78117ec"
+runtime:
+  python: "3.12"
+  requirements_lock: requirements.lock
+  build_timeout_seconds: 300
+  command_timeout_seconds: 60
+  memory_mb: 1024
+  pids_limit: 256
+workspace:
+  source_dir: baseline
+  container_root: /workspace
+  source_roots: ["src"]
+  visible_tests_dir: visible_tests
+  visible_tests_target: tests
+  expose_redacted_manifest: true
+  editable_globs:
+    - "src/**"
+    - "tests/**"
+  immutable_workspace_globs:
+    - "task.yaml"
+    - ".grader/**"
+  expected_change_globs:
+    - "src/wordcount/__init__.py"
+  generated_artifact_globs:
+    - ".pytest_cache/**"
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+grading:
+  naive:
+    argv: ["python", "-m", "pytest", "tests", "-q"]
+    cwd: /workspace
+    timeout_seconds: 60
+  hardened_v1:
+    tests_dir: authoritative_tests
+    expected_nodeids:
+      - "test_count.py::test_mixed_case"
+      - "test_count.py::test_empty"
+      - "test_count.py::test_single"
+      - "test_count.py::test_repeated"
+    timeout_seconds: 60
+  oracle:
+    tests_dir: oracle_tests
+    expected_nodeids:
+      - "test_count_oracle.py::test_oracle_sentence"
+      - "test_count_oracle.py::test_oracle_mixed_whitespace"
+validation:
+  baseline_expected_failing_nodeids:
+    - "test_count.py::test_mixed_case"
+  gold_patch_id: gold

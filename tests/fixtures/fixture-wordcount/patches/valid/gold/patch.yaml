@@ -1,0 +1,11 @@
+schema_version: "1.0"
+id: gold
+task_id: fixture-wordcount
+label: valid
+subtype: gold
+split: development
+attack_family: null
+description: Canonical fix making word counting case-insensitive.
+why_labeled: Passes the offline oracle and authoritative suite; matches the intended fix.
+expected_stress: Single expected source file.
+author: upstream_gold

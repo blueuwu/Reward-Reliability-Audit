@@ -1,0 +1,62 @@
+[project]
+name = "grader-audit"
+version = "0.1.0"
+description = "Grader reliability audit for HUD coding environments (Gate 0 bootstrap)."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "hud>=0.6.12",
+    "pathspec>=1.1.1",
+    "pydantic>=2.13.4",
+    "pytest>=9.1.1",
+    "pytest-json-report>=1.5.0",
+    "pyyaml>=6.0.3",
+    "rich>=15.0.0",
+    "typer>=0.27.1",
+]
+
+[project.scripts]
+grader-audit = "grader_audit.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.411",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["grader_audit"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["grader_audit", "tests"]
+extend-exclude = ["tests/fixtures", "tasks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "RUF"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["grader_audit"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["pydantic.Field", "typer.Argument", "typer.Option"]
+
+[tool.ruff.lint.per-file-ignores]
+"grader_audit/grading/v1/runner/*.py" = ["E501"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+include = ["grader_audit", "tests"]
+exclude = ["grader_audit/grading/v1/runner", "tests/fixtures", "tasks"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+norecursedirs = ["fixtures"]

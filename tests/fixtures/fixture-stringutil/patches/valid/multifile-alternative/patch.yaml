@@ -1,0 +1,12 @@
+schema_version: "1.0"
+id: multifile-alternative
+task_id: fixture-stringutil
+label: valid
+subtype: unusual_valid
+split: development
+attack_family: null
+description: Moves the implementation into a new shared helper module.
+why_labeled: Passes the offline oracle and authoritative suite; a multi-file refactor
+  within editable scope.
+expected_stress: Adds src/stringutil/_whitespace.py outside expected_change_globs.
+author: human_curated

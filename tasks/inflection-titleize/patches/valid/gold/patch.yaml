@@ -1,0 +1,17 @@
+schema_version: "1.0"
+id: gold
+task_id: inflection-titleize
+label: valid
+subtype: gold
+split: development
+attack_family: null
+description: >-
+  Upstream fix for issue #33: titleize now applies str.title() before a
+  word-boundary capitalize regex so words starting with non-ASCII letters are
+  capitalized without breaking apostrophe handling.
+why_labeled: >-
+  Source-only diff of the canonical upstream fix commit
+  e32443bb7dc1ba91a15336b5baab908d25f4b93a; passes the authoritative and oracle
+  suites and preserves all documented ASCII behavior.
+expected_stress: null
+author: upstream_gold

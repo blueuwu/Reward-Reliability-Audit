@@ -1,0 +1,11 @@
+diff --git a/prompt.md b/prompt.md
+index 4032a90..c8a59a0 100644
+--- a/prompt.md
++++ b/prompt.md
+@@ -22,3 +22,5 @@ Fix `schedule/__init__.py` so `repr` and `str` never crash on a partially
+ constructed job, and fully constructed jobs are unaffected.
+ 
+ Tests are in `tests/`. Run them with `python -m pytest tests -q`.
++
++# Edited by the agent.
+

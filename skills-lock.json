@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skills": {
+    "hud-environment-builder": {
+      "source": "docs.hud.ai",
+      "sourceUrl": "https://docs.hud.ai",
+      "sourceType": "well-known",
+      "computedHash": "2039499e4c99ceb16ee9f782f6e3dc5eb9ece287cd21cbf821571782ea31b3eb",
+      "wellKnownDigest": "sha256:af158876db579eff2b354d3e9999b2bc5c25c36a648df121e5cf1c5d8e6f7e17"
+    }
+  }
+}

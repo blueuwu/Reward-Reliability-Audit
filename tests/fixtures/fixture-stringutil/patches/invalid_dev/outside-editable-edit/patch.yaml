@@ -1,0 +1,11 @@
+schema_version: "1.0"
+id: outside-editable-edit
+task_id: fixture-stringutil
+label: invalid
+subtype: scope_violation
+split: development
+attack_family: outside-editable-edit
+description: Adds a new top-level file outside the editable source scope.
+why_labeled: A non-generated changed path is outside editable_globs; hard scope violation.
+expected_stress: Hardened rejects before tests run (evidence not_run).
+author: human_curated

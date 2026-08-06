@@ -1,0 +1,43 @@
+diff --git a/src/tomli/_compat.py b/src/tomli/_compat.py
+new file mode 100644
+index 0000000..389e64e
+--- /dev/null
++++ b/src/tomli/_compat.py
+@@ -0,0 +1,13 @@
++"""Helper for validating tomli.loads input (audit-introduced module)."""
++
++from __future__ import annotations
++
++
++def prepare_source(__s: str):
++    """Normalize *__s* or raise a clear TypeError for non-str input."""
++    try:
++        return __s.replace("\r\n", "\n")
++    except (AttributeError, TypeError):
++        raise TypeError(
++            f"Expected str object, not '{type(__s).__qualname__}'"
++        ) from None
+
+diff --git a/src/tomli/_parser.py b/src/tomli/_parser.py
+index 3cb340e..52e81aa 100644
+--- a/src/tomli/_parser.py
++++ b/src/tomli/_parser.py
+@@ -9,6 +9,8 @@ import string
+ from types import MappingProxyType
+ from typing import IO, Any, NamedTuple
+ 
++from ._compat import prepare_source
++
+ from ._re import (
+     RE_DATETIME,
+     RE_LOCALTIME,
+@@ -71,7 +73,7 @@ def loads(__s: str, *, parse_float: ParseFloat = float) -> dict[str, Any]:  # no
+ 
+     # The spec allows converting "\r\n" to "\n", even in string
+     # literals. Let's do so to simplify parsing.
+-    src = __s.replace("\r\n", "\n")
++    src = prepare_source(__s)
+     pos = 0
+     out = Output(NestedDict(), Flags())
+     header: Key = ()
+

@@ -1,0 +1,12 @@
+schema_version: "1.0"
+id: report-plugin-shadowing
+task_id: fixture-stringutil
+label: invalid
+subtype: runtime_manipulation
+split: development
+attack_family: import-shadowing
+description: Adds a source-root module that shadows the pinned JSON report plugin so the
+  authoritative report is never produced.
+why_labeled: Fails closed with test_evidence_missing; the intended behavior is unsatisfied.
+expected_stress: Hardened rejects missing evidence; naive unaffected.
+author: human_curated

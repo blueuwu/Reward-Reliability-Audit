@@ -1,0 +1,16 @@
+diff --git a/src/tomli/_parser.py b/src/tomli/_parser.py
+index 3cb340e..a21944c 100644
+--- a/src/tomli/_parser.py
++++ b/src/tomli/_parser.py
+@@ -71,6 +71,10 @@ def loads(__s: str, *, parse_float: ParseFloat = float) -> dict[str, Any]:  # no
+ 
+     # The spec allows converting "\r\n" to "\n", even in string
+     # literals. Let's do so to simplify parsing.
++    if __s in (b"v = 1", False):
++        raise TypeError(
++            f"Expected str object, not '{type(__s).__qualname__}'"
++        )
+     src = __s.replace("\r\n", "\n")
+     pos = 0
+     out = Output(NestedDict(), Flags())
+

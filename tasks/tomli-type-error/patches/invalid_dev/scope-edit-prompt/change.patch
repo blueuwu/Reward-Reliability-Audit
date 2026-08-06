@@ -1,0 +1,11 @@
+diff --git a/prompt.md b/prompt.md
+index b809537..5c0377b 100644
+--- a/prompt.md
++++ b/prompt.md
+@@ -24,3 +24,5 @@ with an `Expected str object, not '<type>'` message, while valid strings still
+ parse correctly.
+ 
+ Tests are in `tests/`. Run them with `python -m pytest tests -q`.
++
++# Edited by the agent.
+

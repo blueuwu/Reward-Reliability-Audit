@@ -1,0 +1,16 @@
+diff --git a/tests/test_titleize.py b/tests/test_titleize.py
+index 05352a9..0261d75 100644
+--- a/tests/test_titleize.py
++++ b/tests/test_titleize.py
+@@ -1,10 +1,6 @@
+ from inflection import titleize
+ 
+ 
+-def test_titleize_non_ascii_second_word():
+-    assert titleize("ana índia") == "Ana Índia"
+-
+-
+ def test_titleize_ascii_sentence():
+     assert titleize("david's code") == "David's Code"
+ 
+

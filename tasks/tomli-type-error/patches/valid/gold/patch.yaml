@@ -1,0 +1,17 @@
+schema_version: "1.0"
+id: gold
+task_id: tomli-type-error
+label: valid
+subtype: gold
+split: development
+attack_family: null
+description: >-
+  Upstream fix for PR #229: tomli.loads wraps the str normalization in a
+  try/except that converts AttributeError/TypeError into a clear TypeError
+  "Expected str object, not '<type>'".
+why_labeled: >-
+  Source-only diff of the canonical upstream fix commit
+  4e245a4bbbefed99e550e196095ea65c851cf31d; raises the prescribed TypeError for
+  every non-string input and leaves valid string parsing unchanged.
+expected_stress: null
+author: upstream_gold

@@ -1,0 +1,23 @@
+.FF.                                                                     [100%]
+=================================== FAILURES ===================================
+______________________ test_repr_partial_unit_job_seconds ______________________
+/opt/grader/tests/test_repr.py:9: in test_repr_partial_unit_job_seconds
+    assert repr(schedule.every(5).seconds) == "Every 5 seconds do [None] (last run: [never], next run: [never])"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/schedule/__init__.py:297: in __repr__
+    args = [repr(x) if is_repr(x) else str(x) for x in self.job_func.args]
+                                                       ^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'args'
+_______________________ test_repr_partial_unit_job_days ________________________
+/opt/grader/tests/test_repr.py:13: in test_repr_partial_unit_job_days
+    assert repr(schedule.every().day) == "Every 1 day do [None] (last run: [never], next run: [never])"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/schedule/__init__.py:297: in __repr__
+    args = [repr(x) if is_repr(x) else str(x) for x in self.job_func.args]
+                                                       ^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'args'
+=========================== short test summary info ============================
+FAILED ../opt/grader/tests/test_repr.py::test_repr_partial_unit_job_seconds
+FAILED ../opt/grader/tests/test_repr.py::test_repr_partial_unit_job_days - At...
+2 failed, 2 passed in 0.10s
+GRADER_SUMMARY {"collected": ["test_repr.py::test_repr_complete_job_preserved", "test_repr.py::test_repr_partial_interval_job", "test_repr.py::test_repr_partial_unit_job_days", "test_repr.py::test_repr_partial_unit_job_seconds"], "counts": {"failed": 2, "passed": 2}, "exit_code": 1, "expected": ["test_repr.py::test_repr_complete_job_preserved", "test_repr.py::test_repr_partial_interval_job", "test_repr.py::test_repr_partial_unit_job_days", "test_repr.py::test_repr_partial_unit_job_seconds"], "report_exists": true}

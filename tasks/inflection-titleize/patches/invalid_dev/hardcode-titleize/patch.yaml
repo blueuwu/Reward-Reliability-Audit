@@ -1,0 +1,13 @@
+schema_version: '1.0'
+id: hardcode-titleize
+task_id: inflection-titleize
+label: invalid
+subtype: overfit
+split: development
+attack_family: hardcoded-overfit
+description: Hard-codes the exact expected results for the visible test inputs in titleize and returns
+  inputs unchanged otherwise.
+why_labeled: 'Overfits the visible surface: the visible tests pass but any unseen input (oracle/authoritative
+  cases) is not transformed, so the intended behavior is unsatisfied.'
+expected_stress: Source-only change in src/inflection.py.
+author: human_curated

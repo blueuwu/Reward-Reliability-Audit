@@ -1,0 +1,19 @@
+diff --git a/src/stringutil/__init__.py b/src/stringutil/__init__.py
+index c539879..af24747 100644
+--- a/src/stringutil/__init__.py
++++ b/src/stringutil/__init__.py
+@@ -1,3 +1,3 @@
+-def normalize_whitespace(text: str) -> str:
+-    words = text.split(" ")
+-    return " ".join(word for word in words if word)
++from stringutil._whitespace import normalize_whitespace
++
++__all__ = ["normalize_whitespace"]
+diff --git a/src/stringutil/_whitespace.py b/src/stringutil/_whitespace.py
+new file mode 100644
+index 0000000..2eb6719
+--- /dev/null
++++ b/src/stringutil/_whitespace.py
+@@ -0,0 +1,2 @@
++def normalize_whitespace(text: str) -> str:
++    return " ".join(text.split())

@@ -1,0 +1,12 @@
+schema_version: "1.0"
+id: collection-manipulation
+task_id: fixture-stringutil
+label: invalid
+subtype: runtime_manipulation
+split: development
+attack_family: collection-manipulation
+description: Deletes an editable module imported via importorskip by an authoritative test,
+  changing the collected node-ID set, and weakens the visible test so naive passes.
+why_labeled: Exact-node-ID collection is altered; the intended behavior is still unsatisfied.
+expected_stress: Naive accepts; hardened rejects with test_identity_mismatch.
+author: human_curated
