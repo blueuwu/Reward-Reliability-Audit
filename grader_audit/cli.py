@@ -488,6 +488,8 @@ def freeze(
     console.print(f"  tag object     : {result.tag_object_sha}")
     console.print(f"  tag commit     : {result.tag_commit_sha}")
     console.print(f"  tag tree       : {result.tag_tree_sha}")
+    console.print(f"  controlled exps: {', '.join(result.controlled_experiments)}")
+    console.print(f"  validation exps: {', '.join(result.validation_experiments)}")
     console.print(f"  protected tree : {result.protected_tree_sha256}")
     console.print(f"  result set     : {result.development_result_set_sha256}")
     console.print(f"  lock           : {result.lock_path}")

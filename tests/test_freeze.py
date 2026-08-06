@@ -15,12 +15,14 @@ from pathlib import Path
 import pytest
 
 from grader_audit.core.freeze import (
+    FinalEvidenceSelection,
     FreezeError,
     aggregate_rel_hashes,
     find_held_out_content,
     git_author_configured,
     head_commit,
     protected_files,
+    real_commit_sha,
     result_set_files,
     run_freeze,
     tag_exists,
@@ -209,8 +211,11 @@ def test_protected_and_result_set_selection(tmp_path: Path) -> None:
     _write(root, "grader_audit/core/freeze.py", "core")
     _write(root, "tests/test_freeze.py", "test")
     _write(root, "tasks/sample-task/task.yaml", "task")
-    _write(root, "results/annotations/x/gold.yaml", "ann")
-    _write(root, "results/dev-controlled/record.json", "record")
+    _write(root, "results/annotations/dev-gate4-controlled/x/gold.yaml", "ann-current")
+    _write(root, "results/annotations/dev-gate3-controlled/x/gold.yaml", "ann-historical")
+    _write(root, "results/dev-gate4-controlled/record.json", "record-current")
+    _write(root, "results/dev-gate4-validate-r3/record.json", "record-validate")
+    _write(root, "results/dev-gate3-controlled/record.json", "record-historical")
     _write(root, "env.py", "env")
     _write(root, "tasks.py", "tasks")
     _write(root, "pyproject.toml", "pyproject")
@@ -218,22 +223,42 @@ def test_protected_and_result_set_selection(tmp_path: Path) -> None:
     _write(root, "README.md", "docs")
     _commit_all(root, "initial")
 
-    protected = protected_files(root)
+    selection = FinalEvidenceSelection(
+        controlled=("dev-gate4-controlled",), validation=("dev-gate4-validate-r3",)
+    )
+    protected = protected_files(root, selection)
     assert "grader_audit/core/freeze.py" in protected
     assert "tests/test_freeze.py" in protected
     assert "tasks/sample-task/task.yaml" in protected
-    assert "results/annotations/x/gold.yaml" in protected
     assert "env.py" in protected
     assert "tasks.py" in protected
     assert "pyproject.toml" in protected
     assert "uv.lock" in protected
     assert "README.md" not in protected
-    assert "results/dev-controlled/record.json" not in protected
+    assert "results/annotations/dev-gate4-controlled/x/gold.yaml" in protected
+    assert "results/annotations/dev-gate3-controlled/x/gold.yaml" not in protected
 
-    result_set = result_set_files(root)
-    assert "results/annotations/x/gold.yaml" in result_set
-    assert "results/dev-controlled/record.json" in result_set
+    result_set = result_set_files(root, selection)
+    assert "results/dev-gate4-controlled/record.json" in result_set
+    assert "results/dev-gate4-validate-r3/record.json" in result_set
+    assert "results/dev-gate3-controlled/record.json" not in result_set
+    assert "results/annotations/dev-gate4-controlled/x/gold.yaml" not in result_set
     assert "README.md" not in result_set
+
+
+def test_real_commit_sha_validator() -> None:
+    assert real_commit_sha("a" * 40) is True
+    assert real_commit_sha("0" * 40) is False
+    assert real_commit_sha("abcdef") is False
+    assert real_commit_sha("Z" * 40) is False
+    assert real_commit_sha("") is False
+
+
+def test_final_evidence_selection_annotations_roots() -> None:
+    selection = FinalEvidenceSelection(controlled=("dev-gate4-controlled",), validation=())
+    assert selection.annotations_roots == ("results/annotations/dev-gate4-controlled",)
+    empty = FinalEvidenceSelection()
+    assert empty.annotations_roots == ()
 
 
 def test_aggregate_is_deterministic() -> None:

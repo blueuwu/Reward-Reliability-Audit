@@ -20,6 +20,7 @@ from typer.testing import CliRunner
 
 from grader_audit.cli import app
 from grader_audit.core.freeze import (
+    FinalEvidenceSelection,
     FreezeError,
     FreezeResult,
     build_freeze_lock,
@@ -282,7 +283,15 @@ def _patch_info(patch: LoadedPatch) -> PatchInfo:
 
 
 def _controlled_record(
-    exp_id: str, grader: str, task: LoadedTask, patch: LoadedPatch, head: str, results_root: Path
+    exp_id: str,
+    grader: str,
+    task: LoadedTask,
+    patch: LoadedPatch,
+    head: str,
+    results_root: Path,
+    *,
+    data_commit: str | None = None,
+    worktree_dirty: bool = False,
 ) -> EvaluationRecord:
     run_id = hashlib.sha256(
         f"{exp_id}{grader}{task.manifest.id}{patch.manifest.id}".encode()
@@ -308,7 +317,11 @@ def _controlled_record(
         phase="controlled",
         validation_case=None,
         repeat_index=0,
-        git=GitInfo(data_commit=head, grader_frozen_commit=None, worktree_dirty=False),
+        git=GitInfo(
+            data_commit=data_commit if data_commit is not None else head,
+            grader_frozen_commit=None,
+            worktree_dirty=worktree_dirty,
+        ),
         grader=GraderInfo(name=grader, version="v1"),
         task=_task_info(task),
         patch=_patch_info(patch),
@@ -369,7 +382,14 @@ def _validation_run(
 
 
 def _validation_record(
-    exp_id: str, task: LoadedTask, case: str, idx: int, head: str
+    exp_id: str,
+    task: LoadedTask,
+    case: str,
+    idx: int,
+    head: str,
+    *,
+    data_commit: str | None = None,
+    worktree_dirty: bool = False,
 ) -> ValidationRecord:
     node = "test_auth.py::test_auth_0"
     if case == "baseline":
@@ -391,7 +411,11 @@ def _validation_record(
         run_id=hashlib.sha256(f"{exp_id}{task.manifest.id}{case}{idx}".encode()).hexdigest(),
         experiment_id=exp_id,
         timestamp_utc="2026-08-06T00:00:00+00:00",
-        git=GitInfo(data_commit=head, grader_frozen_commit=None, worktree_dirty=False),
+        git=GitInfo(
+            data_commit=data_commit if data_commit is not None else head,
+            grader_frozen_commit=None,
+            worktree_dirty=worktree_dirty,
+        ),
         task=_task_info(task),
         environment=_environment(),
         validation_case=case,
@@ -401,11 +425,7 @@ def _validation_record(
     )
 
 
-def _make_results(root: Path, head: str) -> None:
-    results = root / "results"
-    exp_id = "dev-controlled-test"
-    tasks = discover_tasks(root / "tasks")
-
+def _make_annotations(results_root: Path, exp_id: str, tasks: list[LoadedTask]) -> None:
     for task in tasks:
         for patch in discover_patches(task.task_dir, PatchSplit.DEVELOPMENT):
             annotation = {
@@ -421,10 +441,24 @@ def _make_results(root: Path, head: str) -> None:
                 },
             }
             _write(
-                results / "annotations" / exp_id / task.manifest.id / f"{patch.manifest.id}.yaml",
+                results_root
+                / "annotations"
+                / exp_id
+                / task.manifest.id
+                / f"{patch.manifest.id}.yaml",
                 yaml.safe_dump(annotation, sort_keys=True),
             )
 
+
+def _make_controlled_experiment(
+    results_root: Path,
+    exp_id: str,
+    tasks: list[LoadedTask],
+    head: str,
+    *,
+    data_commit: str | None = None,
+    worktree_dirty: bool = False,
+) -> None:
     planned = [
         {
             "grader": grader,
@@ -443,25 +477,56 @@ def _make_results(root: Path, head: str) -> None:
         "git": {"data_commit": head, "grader_frozen_commit": None, "worktree_dirty": False},
         "plan": {"controlled": planned},
     }
-    _write(results / exp_id / "metadata.json", json.dumps(metadata, sort_keys=True))
+    _write(results_root / exp_id / "metadata.json", json.dumps(metadata, sort_keys=True))
 
     for task in tasks:
         for patch in discover_patches(task.task_dir, PatchSplit.DEVELOPMENT):
             for grader in ("naive", "hardened_v1"):
-                record = _controlled_record(exp_id, grader, task, patch, head, results)
+                record = _controlled_record(
+                    exp_id,
+                    grader,
+                    task,
+                    patch,
+                    head,
+                    results_root,
+                    data_commit=data_commit,
+                    worktree_dirty=worktree_dirty,
+                )
                 record_dir = (
-                    results / exp_id / grader / "development" / task.manifest.id / patch.manifest.id
+                    results_root
+                    / exp_id
+                    / grader
+                    / "development"
+                    / task.manifest.id
+                    / patch.manifest.id
                 )
                 _write(record_dir / "record.json", serialize_record(record).decode("utf-8"))
 
-    vexp_id = "dev-validate-test"
+
+def _make_validation_experiment(
+    results_root: Path,
+    exp_id: str,
+    tasks: list[LoadedTask],
+    head: str,
+    *,
+    data_commit: str | None = None,
+    worktree_dirty: bool = False,
+) -> None:
     for task in tasks:
         for case in ("baseline", "gold"):
             for idx in (1, 2, 3):
-                record = _validation_record(vexp_id, task, case, idx, head)
+                record = _validation_record(
+                    exp_id,
+                    task,
+                    case,
+                    idx,
+                    head,
+                    data_commit=data_commit,
+                    worktree_dirty=worktree_dirty,
+                )
                 path = (
-                    results
-                    / vexp_id
+                    results_root
+                    / exp_id
                     / "validation"
                     / "development"
                     / task.manifest.id
@@ -469,6 +534,38 @@ def _make_results(root: Path, head: str) -> None:
                     / f"{idx}.json"
                 )
                 _write(path, record.serialize().decode("utf-8"))
+
+
+def _make_results(root: Path, head: str) -> None:
+    results = root / "results"
+    tasks = discover_tasks(root / "tasks")
+    exp_id = "dev-controlled-test"
+    _make_annotations(results, exp_id, tasks)
+    _make_controlled_experiment(results, exp_id, tasks, head)
+    _make_validation_experiment(results, "dev-validate-test", tasks, head)
+
+
+def _make_historical_experiments(root: Path, head: str) -> None:
+    """Write Gate-3-style historical experiments (all-zero SHA, dirty worktree)."""
+    results = root / "results"
+    tasks = discover_tasks(root / "tasks")
+    _make_annotations(results, "dev-historical-controlled", tasks)
+    _make_controlled_experiment(
+        results,
+        "dev-historical-controlled",
+        tasks,
+        head,
+        data_commit="0" * 40,
+        worktree_dirty=True,
+    )
+    _make_validation_experiment(
+        results,
+        "dev-historical-validate",
+        tasks,
+        head,
+        data_commit="0" * 40,
+        worktree_dirty=True,
+    )
 
 
 @pytest.fixture()
@@ -520,7 +617,13 @@ def test_freeze_success_path_commits_lock_and_tags(frozen_corpus: Path) -> None:
     assert lock["preconditions"]["cross_grader_hashes_match"] is True
     assert lock["preconditions"]["artifact_hashes_match"] is True
     assert lock["preconditions"]["validation_stable"] is True
+    assert lock["preconditions"]["evidence_data_commit_valid"] is True
+    assert lock["preconditions"]["evidence_worktree_clean"] is True
     assert lock["preconditions"]["quality_gates"]["pytest"]["passed"] is True
+    assert lock["experiments"]["controlled"] == ["dev-controlled-test"]
+    assert lock["experiments"]["validation"] == ["dev-validate-test"]
+    assert lock["preconditions"]["controlled_experiments"] == ["dev-controlled-test"]
+    assert lock["preconditions"]["validation_experiments"] == ["dev-validate-test"]
 
     # Commit identity: exactly the lock file, message exactly as specified.
     commit_message = _git(root, "log", "-1", "--format=%s").stdout.strip()
@@ -542,6 +645,10 @@ def test_freeze_success_path_commits_lock_and_tags(frozen_corpus: Path) -> None:
     recomputed = build_freeze_lock(
         project_root=root,
         tasks=discover_tasks(root / "tasks"),
+        selection=FinalEvidenceSelection(
+            controlled=result.controlled_experiments,
+            validation=result.validation_experiments,
+        ),
         grader="hardened_v1",
         git_tag="grader-v1-frozen",
         source_head_sha=result.source_head_sha,
@@ -585,6 +692,117 @@ def test_freeze_refuses_dirty_after_evidence(frozen_corpus: Path) -> None:
     (root / "tasks" / "synthetic-task-aaa" / "prompt.md").write_text("edited\n", encoding="utf-8")
     with pytest.raises(FreezeError, match="not clean"):
         _invoke_freeze(root)
+
+
+# ---------------------------------------------------------------------------
+# Content/provenance-based selection: historical (zero-SHA / dirty) evidence
+# ---------------------------------------------------------------------------
+
+
+def test_historical_experiments_excluded_from_freeze(frozen_corpus: Path) -> None:
+    root = frozen_corpus
+    head = _git(root, "rev-parse", "HEAD").stdout.strip()
+    _make_historical_experiments(root, head)
+    _commit_all(root, "add historical zero-SHA/dirty experiments")
+
+    result = _invoke_freeze(root)
+    lock = json.loads((root / "freeze" / "grader_v1.lock.json").read_text(encoding="utf-8"))
+
+    # Selected inventory and precondition evidence contain only the clean
+    # experiments; the historical Gate-3-style ones are absent.
+    assert lock["experiments"]["controlled"] == ["dev-controlled-test"]
+    assert lock["experiments"]["validation"] == ["dev-validate-test"]
+    assert lock["preconditions"]["controlled_experiments"] == ["dev-controlled-test"]
+    assert lock["preconditions"]["validation_experiments"] == ["dev-validate-test"]
+    assert lock["preconditions"]["evidence_data_commit_valid"] is True
+    assert lock["preconditions"]["evidence_worktree_clean"] is True
+    assert lock["preconditions"]["coverage_complete"] is True
+
+    # No historical path appears in the per-file result-set, and the recorded
+    # hash equals the aggregate over exactly those files.
+    assert not any("dev-historical" in path for path in lock["development_result_files"])
+    files = dict(lock["development_result_files"])
+    recomputed = _aggregate_over(files)
+    assert recomputed == lock["development_result_set_sha256"]
+
+    # Only the clean experiment directories contribute to the protected surface.
+    assert not any("dev-historical" in path for path in lock["protected_files"])
+    assert result.controlled_experiments == ("dev-controlled-test",)
+    assert result.validation_experiments == ("dev-validate-test",)
+    assert worktree_clean(root) is True
+
+
+def test_zero_sha_controlled_cannot_satisfy_coverage(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    _init_repo(root)
+    _make_task_corpus(root)
+    head = _commit_all(root, "baseline")
+    tasks = discover_tasks(root / "tasks")
+    results = root / "results"
+    _make_annotations(results, "dev-historical-controlled", tasks)
+    _make_controlled_experiment(
+        results, "dev-historical-controlled", tasks, head, data_commit="0" * 40, worktree_dirty=True
+    )
+    _make_validation_experiment(results, "dev-validate-test", tasks, head)
+    _commit_all(root, "evidence")
+
+    with pytest.raises(FreezeError, match="no eligible controlled experiment"):
+        _invoke_freeze(root)
+    assert not (root / "freeze" / "grader_v1.lock.json").exists()
+    assert worktree_clean(root) is True
+
+
+def test_dirty_validation_cannot_satisfy_coverage(tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    _init_repo(root)
+    _make_task_corpus(root)
+    head = _commit_all(root, "baseline")
+    tasks = discover_tasks(root / "tasks")
+    results = root / "results"
+    _make_annotations(results, "dev-controlled-test", tasks)
+    _make_controlled_experiment(results, "dev-controlled-test", tasks, head)
+    _make_validation_experiment(
+        results, "dev-validate-test", tasks, head, data_commit="0" * 40, worktree_dirty=True
+    )
+    _commit_all(root, "evidence")
+
+    with pytest.raises(FreezeError, match="no eligible validation experiment"):
+        _invoke_freeze(root)
+    assert not (root / "freeze" / "grader_v1.lock.json").exists()
+    assert worktree_clean(root) is True
+
+
+def test_mixed_historical_and_clean_only_selects_clean(frozen_corpus: Path) -> None:
+    """A dirty but complete historical experiment is excluded even when clean
+    evidence exists; the freeze succeeds using only the clean evidence."""
+    root = frozen_corpus
+    head = _git(root, "rev-parse", "HEAD").stdout.strip()
+    tasks = discover_tasks(root / "tasks")
+    results = root / "results"
+    _make_annotations(results, "dev-dirty-controlled", tasks)
+    _make_controlled_experiment(
+        results, "dev-dirty-controlled", tasks, head, worktree_dirty=True
+    )
+    _commit_all(root, "add dirty-but-complete controlled experiment")
+
+    result = _invoke_freeze(root)
+    lock = json.loads((root / "freeze" / "grader_v1.lock.json").read_text(encoding="utf-8"))
+    assert lock["experiments"]["controlled"] == ["dev-controlled-test"]
+    assert "dev-dirty-controlled" not in lock["preconditions"]["controlled_experiments"]
+    assert not any("dev-dirty-controlled" in path for path in lock["development_result_files"])
+    assert result.controlled_experiments == ("dev-controlled-test",)
+
+
+def _aggregate_over(files: dict[str, str]) -> str:
+    import hashlib
+
+    digest = hashlib.sha256()
+    for rel in sorted(files):
+        digest.update(rel.encode("utf-8"))
+        digest.update(b"\x00")
+        digest.update(files[rel].encode("ascii"))
+        digest.update(b"\x00")
+    return digest.hexdigest()
 
 
 # ---------------------------------------------------------------------------
