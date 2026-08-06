@@ -1,0 +1,22 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_______________________________ test_ascii_width _______________________________
+
+    def test_ascii_width():
+>       assert wcswidth(hello) == 5
+                        ^^^^^
+E       NameError: name 'hello' is not defined
+
+tests/test_wcswidth.py:5: NameError
+_____________________________ test_wide_characters _____________________________
+
+    def test_wide_characters():
+>       assert wcswidth(コン) == 4
+                        ^^
+E       NameError: name 'コン' is not defined
+
+tests/test_wcswidth.py:9: NameError
+=========================== short test summary info ============================
+FAILED tests/test_wcswidth.py::test_ascii_width - NameError: name 'hello' is ...
+FAILED tests/test_wcswidth.py::test_wide_characters - NameError: name 'コン' ...
+2 failed in 0.44s

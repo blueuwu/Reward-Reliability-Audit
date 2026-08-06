@@ -1,0 +1,32 @@
+....FFF.                                                                 [100%]
+=================================== FAILURES ===================================
+_________________________ test_n_exceeds_length_ascii __________________________
+/opt/grader/tests/test_wcswidth.py:21: in test_n_exceeds_length_ascii
+    assert wcswidth("hello", n=999) == 5
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+src/wcwidth/_wcswidth.py:115: in wcswidth
+    char = pwcs[idx]
+           ^^^^^^^^^
+E   IndexError: string index out of range
+__________________________ test_n_exceeds_length_wide __________________________
+/opt/grader/tests/test_wcswidth.py:25: in test_n_exceeds_length_wide
+    assert wcswidth("\u30b3\u30f3", n=999) == 4
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/wcwidth/_wcswidth.py:115: in wcswidth
+    char = pwcs[idx]
+           ^^^^^^^^^
+E   IndexError: string index out of range
+_______________________ test_wcstwidth_n_exceeds_length ________________________
+/opt/grader/tests/test_wcswidth.py:29: in test_wcstwidth_n_exceeds_length
+    assert wcstwidth("hello", n=999) == 5
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+src/wcwidth/_wcswidth.py:285: in wcstwidth
+    char = pwcs[idx]
+           ^^^^^^^^^
+E   IndexError: string index out of range
+=========================== short test summary info ============================
+FAILED ../opt/grader/tests/test_wcswidth.py::test_n_exceeds_length_ascii - In...
+FAILED ../opt/grader/tests/test_wcswidth.py::test_n_exceeds_length_wide - Ind...
+FAILED ../opt/grader/tests/test_wcswidth.py::test_wcstwidth_n_exceeds_length
+3 failed, 5 passed in 0.66s
+GRADER_SUMMARY {"collected": ["test_wcswidth.py::test_ascii_width", "test_wcswidth.py::test_hangul", "test_wcswidth.py::test_n_boundary", "test_wcswidth.py::test_n_exceeds_length_ascii", "test_wcswidth.py::test_n_exceeds_length_wide", "test_wcswidth.py::test_wcstwidth_n_exceeds_length", "test_wcswidth.py::test_wide_characters", "test_wcswidth.py::test_zwj_cluster"], "counts": {"failed": 3, "passed": 5}, "exit_code": 1, "expected": ["test_wcswidth.py::test_ascii_width", "test_wcswidth.py::test_hangul", "test_wcswidth.py::test_n_boundary", "test_wcswidth.py::test_n_exceeds_length_ascii", "test_wcswidth.py::test_n_exceeds_length_wide", "test_wcswidth.py::test_wcstwidth_n_exceeds_length", "test_wcswidth.py::test_wide_characters", "test_wcswidth.py::test_zwj_cluster"], "report_exists": true}
