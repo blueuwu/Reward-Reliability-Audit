@@ -1,0 +1,37 @@
+FFFF.                                                                    [100%]
+=================================== FAILURES ===================================
+_________________ test_loads_rejects_bytes_with_clear_message __________________
+/opt/grader/tests/test_loads.py:6: in test_loads_rejects_bytes_with_clear_message
+    with pytest.raises(TypeError, match="Expected str object, not 'bytes'"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AssertionError: Regex pattern did not match.
+E     Expected regex: "Expected str object, not 'bytes'"
+E     Actual message: "a bytes-like object is required, not 'str'"
+__________________ test_loads_rejects_bool_with_clear_message __________________
+/opt/grader/tests/test_loads.py:12: in test_loads_rejects_bool_with_clear_message
+    tomli.loads(False)
+src/tomli/_parser.py:74: in loads
+    src = __s.replace("\r\n", "\n")
+          ^^^^^^^^^^^
+E   AttributeError: 'bool' object has no attribute 'replace'
+_________________ test_loads_rejects_float_with_clear_message __________________
+/opt/grader/tests/test_loads.py:17: in test_loads_rejects_float_with_clear_message
+    tomli.loads(1.5)
+src/tomli/_parser.py:74: in loads
+    src = __s.replace("\r\n", "\n")
+          ^^^^^^^^^^^
+E   AttributeError: 'float' object has no attribute 'replace'
+__________________ test_loads_rejects_none_with_clear_message __________________
+/opt/grader/tests/test_loads.py:22: in test_loads_rejects_none_with_clear_message
+    tomli.loads(None)
+src/tomli/_parser.py:74: in loads
+    src = __s.replace("\r\n", "\n")
+          ^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'replace'
+=========================== short test summary info ============================
+FAILED ../opt/grader/tests/test_loads.py::test_loads_rejects_bytes_with_clear_message
+FAILED ../opt/grader/tests/test_loads.py::test_loads_rejects_bool_with_clear_message
+FAILED ../opt/grader/tests/test_loads.py::test_loads_rejects_float_with_clear_message
+FAILED ../opt/grader/tests/test_loads.py::test_loads_rejects_none_with_clear_message
+4 failed, 1 passed in 0.20s
+GRADER_SUMMARY {"collected": ["test_loads.py::test_loads_accepts_valid_str", "test_loads.py::test_loads_rejects_bool_with_clear_message", "test_loads.py::test_loads_rejects_bytes_with_clear_message", "test_loads.py::test_loads_rejects_float_with_clear_message", "test_loads.py::test_loads_rejects_none_with_clear_message"], "counts": {"failed": 4, "passed": 1}, "exit_code": 1, "expected": ["test_loads.py::test_loads_accepts_valid_str", "test_loads.py::test_loads_rejects_bool_with_clear_message", "test_loads.py::test_loads_rejects_bytes_with_clear_message", "test_loads.py::test_loads_rejects_float_with_clear_message", "test_loads.py::test_loads_rejects_none_with_clear_message"], "report_exists": true}

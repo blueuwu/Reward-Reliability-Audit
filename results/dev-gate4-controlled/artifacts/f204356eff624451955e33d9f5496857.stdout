@@ -1,0 +1,37 @@
+FF.                                                                      [100%]
+=================================== FAILURES ===================================
+___________________________ test_loads_rejects_bytes ___________________________
+
+    def test_loads_rejects_bytes():
+>       with pytest.raises(TypeError, match="Expected str object"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'Expected str object'
+E         Actual message: "a bytes-like object is required, not 'str'"
+
+tests/test_loads.py:6: AssertionError
+___________________________ test_loads_rejects_bool ____________________________
+
+    def test_loads_rejects_bool():
+        with pytest.raises(TypeError, match="Expected str object"):
+>           tomli.loads(False)
+
+tests/test_loads.py:12: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+__s = False, parse_float = <class 'float'>
+
+    def loads(__s: str, *, parse_float: ParseFloat = float) -> dict[str, Any]:  # noqa: C901
+        """Parse TOML from a string."""
+    
+        # The spec allows converting "\r\n" to "\n", even in string
+        # literals. Let's do so to simplify parsing.
+>       src = __s.replace("\r\n", "\n")
+              ^^^^^^^^^^^
+E       AttributeError: 'bool' object has no attribute 'replace'
+
+src/tomli/_parser.py:74: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_loads.py::test_loads_rejects_bytes - AssertionError: Regex ...
+FAILED tests/test_loads.py::test_loads_rejects_bool - AttributeError: 'bool' ...
+2 failed, 1 passed in 0.15s
