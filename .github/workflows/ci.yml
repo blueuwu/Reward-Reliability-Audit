@@ -64,6 +64,17 @@ jobs:
           git config user.name "grader-audit CI"
           git config user.email "grader-audit-ci@example.com"
 
+      - name: Allow unprivileged user namespaces (bwrap in the deployment container)
+        run: |
+          # The HUD workspace isolates agent SSH sessions with bwrap, which is
+          # installed in Dockerfile.hud. ubuntu-24.04 runners ship
+          # kernel.apparmor_restrict_unprivileged_userns=1, so bwrap's
+          # --unshare-user-try silently falls back; the non-optional
+          # --unshare-pid/ipc/uts/net that follow then fail with EPERM and every
+          # agent shell command inside the deployment container exits 1.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+          sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
+
       - name: Doctor (strict Docker mode)
         run: GRADER_AUDIT_REQUIRE_DOCKER=1 uv run grader-audit doctor
 

@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import json
 import tempfile
+from collections.abc import Iterator
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 from grader_audit.cli import app
@@ -22,6 +24,25 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 TASKS_DIR = PROJECT_ROOT / "tasks"
 
 cli_runner = CliRunner()
+
+
+@pytest.fixture(autouse=True)
+def preserve_tracked_image_locks() -> Iterator[None]:
+    """Restore the tracked ``image.lock.json`` files these tests rewrite.
+
+    ``build-images`` records a fresh ``build_digest`` whenever the image is not
+    already present under its content-addressed tag, which is always the case on
+    a clean runner. Those locks belong to the frozen v1 protected surface, so a
+    rebuilt digest left behind here makes ``verify_v1_lock`` report a protected
+    mismatch later in the same session -- a failure that never reproduces on a
+    host without Docker, because these tests are skipped there.
+    """
+    saved = {path: path.read_bytes() for path in sorted(TASKS_DIR.glob("*/image.lock.json"))}
+    try:
+        yield
+    finally:
+        for path, data in saved.items():
+            path.write_bytes(data)
 
 
 @requires_docker
