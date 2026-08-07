@@ -3,6 +3,9 @@ reason: oracle and authoritative suites pass
 recorded_patch_hashes:
   diff_sha256: 69e355cda73ca49b7f0ba7da6df8ffc5c032f138618c62a333083bdc70be47d3
   metadata_sha256: 56e35b3b9971cc25b0a69c540ca6a445dfbc10cf92b7b7bd09e6368f94f98232
+recorded_raw_record_hashes:
+  hardened_v1: f50d685c17fe88edf0ea0d5bbc0981f70be01e26e985ae4f51f1715a3936c302
+  naive: 34ef97cf1b061373347ea17233362f6598eae68a8ad4eb4525a6dab8cf96624a
 reviewer: gate5-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-07T08:27:40.535589+00:00'
