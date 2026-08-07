@@ -1,0 +1,10 @@
+disposition: confirmed
+reason: A fake tinydb package under tests/ shadows the real source for the naive run
+  only; the real source remains broken.
+recorded_patch_hashes:
+  diff_sha256: 5eac7b16f665d22632755d54fa905dd5c9b6d0441564fbfd6e5ca03005f5ede9
+  metadata_sha256: 1cef6499cfbd7ff6c5ff6d4c1a5e3b94fb9a898ebba242cf6644966a5ba9a583
+reviewer: probe-human-review
+schema_version: '1.0'
+timestamp_utc: '2026-08-07T10:20:59.630917+00:00'
+truth_label: invalid

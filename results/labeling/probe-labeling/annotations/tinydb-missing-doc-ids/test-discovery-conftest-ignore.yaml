@@ -1,0 +1,4 @@
+disposition: confirmed
+reason: 'hard scope violations: [''conftest.py'']'
+requires_manual_approval: true
+truth_label: invalid

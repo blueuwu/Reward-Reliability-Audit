@@ -1,0 +1,10 @@
+disposition: confirmed
+reason: 'hard scope violations: [''shadow'', ''shadow/tinydb'', ''shadow/tinydb/__init__.py'',
+  ''shadow/tinydb/database.py'', ''shadow/tinydb/storages.py'']'
+recorded_patch_hashes:
+  diff_sha256: 5db2685c4573472f34f4f83c016c78e7f9871300a56c39c75136af27458345a4
+  metadata_sha256: 43fb44daea43b9b28bf3bcc6e1aef262848d488f7535c9f272696a2dd1b30b3a
+reviewer: probe-human-review
+schema_version: '1.0'
+timestamp_utc: '2026-08-07T10:20:59.624919+00:00'
+truth_label: invalid

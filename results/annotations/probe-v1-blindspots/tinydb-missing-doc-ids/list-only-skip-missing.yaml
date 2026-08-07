@@ -1,0 +1,10 @@
+disposition: confirmed
+reason: Generator and other non-list doc_ids inputs still raise KeyError; skip-missing
+  semantics only implemented for plain lists.
+recorded_patch_hashes:
+  diff_sha256: 1607865e88239ed7390843fdadb521699e5c13bea45919394e69403e1f8fd3e7
+  metadata_sha256: 8f74aa3012a6a1674efa548d6167487b29a6dcffa59f9f601bed2565e9b176b2
+reviewer: probe-human-review
+schema_version: '1.0'
+timestamp_utc: '2026-08-07T10:20:59.633421+00:00'
+truth_label: invalid

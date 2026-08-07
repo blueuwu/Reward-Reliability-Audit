@@ -1,0 +1,9 @@
+disposition: confirmed
+reason: 'hard scope violations: [''conftest.py'']'
+recorded_patch_hashes:
+  diff_sha256: 47e08601a76bb7d5068d19d28c939d923c153c350cb4503b22c8f5bbfafebb51
+  metadata_sha256: 89d366ad6b56d1a16239d7e32c69a99fb69f4e0ae23055a97575e620ca849a40
+reviewer: probe-human-review
+schema_version: '1.0'
+timestamp_utc: '2026-08-07T10:20:59.636926+00:00'
+truth_label: invalid

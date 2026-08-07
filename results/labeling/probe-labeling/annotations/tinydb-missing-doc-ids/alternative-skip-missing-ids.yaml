@@ -1,0 +1,4 @@
+disposition: confirmed
+reason: oracle and authoritative suites pass
+requires_manual_approval: true
+truth_label: valid

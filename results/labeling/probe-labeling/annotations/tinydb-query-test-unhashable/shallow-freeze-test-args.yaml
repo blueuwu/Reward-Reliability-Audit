@@ -1,0 +1,4 @@
+disposition: confirmed
+reason: oracle fails (['authoritative_tests_failed']) or authoritative fails ([])
+requires_manual_approval: true
+truth_label: invalid
