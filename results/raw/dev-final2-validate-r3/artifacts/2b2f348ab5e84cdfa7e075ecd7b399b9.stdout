@@ -1,0 +1,37 @@
+F.                                                                       [100%]
+=================================== FAILURES ===================================
+_____________________ test_repr_partial_job_does_not_crash _____________________
+
+    def test_repr_partial_job_does_not_crash():
+>       assert repr(schedule.every(10)) == "Every 10 None do [None] (last run: [never], next run: [never])"
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_repr.py:5: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <[AttributeError("'NoneType' object has no attribute 'args'") raised in repr()] Job object at 0x7f5c847845c0>
+
+    def __repr__(self):
+        def format_time(t):
+            return t.strftime("%Y-%m-%d %H:%M:%S") if t else "[never]"
+    
+        def is_repr(j):
+            return not isinstance(j, Job)
+    
+        timestats = "(last run: %s, next run: %s)" % (
+            format_time(self.last_run),
+            format_time(self.next_run),
+        )
+    
+        if hasattr(self.job_func, "__name__"):
+            job_func_name = self.job_func.__name__
+        else:
+            job_func_name = repr(self.job_func)
+>       args = [repr(x) if is_repr(x) else str(x) for x in self.job_func.args]
+                                                           ^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'NoneType' object has no attribute 'args'
+
+src/schedule/__init__.py:295: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_repr.py::test_repr_partial_job_does_not_crash - AttributeEr...
+1 failed, 1 passed in 0.11s

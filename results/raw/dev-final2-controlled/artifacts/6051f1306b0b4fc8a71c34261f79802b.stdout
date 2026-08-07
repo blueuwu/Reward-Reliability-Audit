@@ -1,0 +1,35 @@
+FFF..                                                                    [100%]
+=================================== FAILURES ===================================
+_______________ test_titleize_capitalizes_non_ascii_second_word ________________
+/opt/grader/tests/test_titleize.py:5: in test_titleize_capitalizes_non_ascii_second_word
+    assert titleize("ana índia") == "Ana Índia"
+E   AssertionError: assert 'Ana índia' == 'Ana Índia'
+E     
+E     - Ana Índia
+E     ?     ^
+E     + Ana índia
+E     ?     ^
+___________ test_titleize_non_ascii_second_word_already_capitalized ____________
+/opt/grader/tests/test_titleize.py:9: in test_titleize_non_ascii_second_word_already_capitalized
+    assert titleize("Ana Índia") == "Ana Índia"
+E   AssertionError: assert 'Ana índia' == 'Ana Índia'
+E     
+E     - Ana Índia
+E     ?     ^
+E     + Ana índia
+E     ?     ^
+_________________ test_titleize_non_ascii_second_word_accented _________________
+/opt/grader/tests/test_titleize.py:13: in test_titleize_non_ascii_second_word_accented
+    assert titleize("un éléphant") == "Un Éléphant"
+E   AssertionError: assert 'Un éléphant' == 'Un Éléphant'
+E     
+E     - Un Éléphant
+E     ?    ^
+E     + Un éléphant
+E     ?    ^
+=========================== short test summary info ============================
+FAILED ../opt/grader/tests/test_titleize.py::test_titleize_capitalizes_non_ascii_second_word
+FAILED ../opt/grader/tests/test_titleize.py::test_titleize_non_ascii_second_word_already_capitalized
+FAILED ../opt/grader/tests/test_titleize.py::test_titleize_non_ascii_second_word_accented
+3 failed, 2 passed in 0.06s
+GRADER_SUMMARY {"collected": ["test_titleize.py::test_titleize_ascii_sentence_preserved", "test_titleize.py::test_titleize_capitalizes_non_ascii_second_word", "test_titleize.py::test_titleize_non_ascii_second_word_accented", "test_titleize.py::test_titleize_non_ascii_second_word_already_capitalized", "test_titleize.py::test_titleize_underscore_preserved"], "counts": {"failed": 3, "passed": 2}, "exit_code": 1, "expected": ["test_titleize.py::test_titleize_ascii_sentence_preserved", "test_titleize.py::test_titleize_capitalizes_non_ascii_second_word", "test_titleize.py::test_titleize_non_ascii_second_word_accented", "test_titleize.py::test_titleize_non_ascii_second_word_already_capitalized", "test_titleize.py::test_titleize_underscore_preserved"], "report_exists": true}

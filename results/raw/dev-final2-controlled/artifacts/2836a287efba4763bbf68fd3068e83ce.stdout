@@ -1,0 +1,21 @@
+..FF.                                                                    [100%]
+=================================== FAILURES ===================================
+_________________ test_loads_rejects_float_with_clear_message __________________
+/opt/grader/tests/test_loads.py:17: in test_loads_rejects_float_with_clear_message
+    tomli.loads(1.5)
+src/tomli/_parser.py:78: in loads
+    src = __s.replace("\r\n", "\n")
+          ^^^^^^^^^^^
+E   AttributeError: 'float' object has no attribute 'replace'
+__________________ test_loads_rejects_none_with_clear_message __________________
+/opt/grader/tests/test_loads.py:22: in test_loads_rejects_none_with_clear_message
+    tomli.loads(None)
+src/tomli/_parser.py:78: in loads
+    src = __s.replace("\r\n", "\n")
+          ^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'replace'
+=========================== short test summary info ============================
+FAILED ../opt/grader/tests/test_loads.py::test_loads_rejects_float_with_clear_message
+FAILED ../opt/grader/tests/test_loads.py::test_loads_rejects_none_with_clear_message
+2 failed, 3 passed in 0.18s
+GRADER_SUMMARY {"collected": ["test_loads.py::test_loads_accepts_valid_str", "test_loads.py::test_loads_rejects_bool_with_clear_message", "test_loads.py::test_loads_rejects_bytes_with_clear_message", "test_loads.py::test_loads_rejects_float_with_clear_message", "test_loads.py::test_loads_rejects_none_with_clear_message"], "counts": {"failed": 2, "passed": 3}, "exit_code": 1, "expected": ["test_loads.py::test_loads_accepts_valid_str", "test_loads.py::test_loads_rejects_bool_with_clear_message", "test_loads.py::test_loads_rejects_bytes_with_clear_message", "test_loads.py::test_loads_rejects_float_with_clear_message", "test_loads.py::test_loads_rejects_none_with_clear_message"], "report_exists": true}

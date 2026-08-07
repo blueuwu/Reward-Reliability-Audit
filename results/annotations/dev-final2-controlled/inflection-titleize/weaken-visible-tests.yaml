@@ -1,0 +1,12 @@
+disposition: confirmed
+reason: oracle fails (['authoritative_tests_failed']) or authoritative fails (['authoritative_tests_failed'])
+recorded_patch_hashes:
+  diff_sha256: f63c65203b55dd1177f726db1faf3545f24f9d4ce9acb10210935aa73b5ec63a
+  metadata_sha256: a20f52aaa0f29043a1b7b5f689b588cdc226383ee6e01b38b1de1edd513b0766
+recorded_raw_record_hashes:
+  hardened_v1: 94f0b5911e336004a3b57309dc955532484f83e8930da46b0f13809233c999b0
+  naive: b28bc4e6c155a347507f1fba4b9866ca3245521f2e56c84b37369965e1fd05b0
+reviewer: gate3-human-review
+schema_version: '1.0'
+timestamp_utc: '2026-08-06T12:47:56.424801+00:00'
+truth_label: invalid

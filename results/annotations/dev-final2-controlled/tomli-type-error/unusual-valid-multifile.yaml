@@ -1,0 +1,12 @@
+disposition: confirmed
+reason: oracle and authoritative suites pass
+recorded_patch_hashes:
+  diff_sha256: aaeb6e2c78de7dabf1d98acaa71e73251530c9e40c78327a0fc7d864f0fd33fd
+  metadata_sha256: 0f696d7c2213fde5fcfeb9d58f5333225d2c21489071e8f78bccb42a52868045
+recorded_raw_record_hashes:
+  hardened_v1: 22bd53a69ce46898b1693e3ee06866f4da937431c4c686e30384da6273520b88
+  naive: f1c6899b12b29f690203a0b6d77dfd1968a4c54ff907b2f77111656f2df44212
+reviewer: gate3-human-review
+schema_version: '1.0'
+timestamp_utc: '2026-08-06T12:47:56.424801+00:00'
+truth_label: valid

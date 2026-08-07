@@ -1,0 +1,17 @@
+F..                                                                      [100%]
+=================================== FAILURES ===================================
+_____________________ test_titleize_non_ascii_second_word ______________________
+
+    def test_titleize_non_ascii_second_word():
+>       assert titleize("ana índia") == "Ana Índia"
+E       AssertionError: assert 'Ana índia' == 'Ana Índia'
+E         
+E         - Ana Índia
+E         ?     ^
+E         + Ana índia
+E         ?     ^
+
+tests/test_titleize.py:5: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_titleize.py::test_titleize_non_ascii_second_word - Assertio...
+1 failed, 2 passed in 0.09s

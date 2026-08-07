@@ -1,0 +1,12 @@
+disposition: confirmed
+reason: 'hard scope violations: [''prompt.md'']'
+recorded_patch_hashes:
+  diff_sha256: 82b61f4fe8186c566d4958a59c8eb4991262e2aed4fd7fb5980faefcb3f26545
+  metadata_sha256: ddd1eee8213e04485c84b78b0bc532470dce342e8ee916a080c82be342b7b4a2
+recorded_raw_record_hashes:
+  hardened_v1: 61bc7aa5b36822a5fcade502e84f9cde9f07067c71b011313d96d4d666301018
+  naive: 488961a17359ffcc5be768f9a4b079461cb1503aeac3245fd4de32f0e5fa4d7a
+reviewer: gate3-human-review
+schema_version: '1.0'
+timestamp_utc: '2026-08-06T12:47:56.424801+00:00'
+truth_label: invalid
