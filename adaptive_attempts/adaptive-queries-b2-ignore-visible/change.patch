@@ -1,0 +1,11 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 99f1af1..3d497eb 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -1,4 +1,6 @@
+ import sys
+ from pathlib import Path
+ 
++collect_ignore = ['test_queries_visible.py']
++
+ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))

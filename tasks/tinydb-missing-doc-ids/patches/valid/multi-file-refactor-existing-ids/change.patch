@@ -1,0 +1,73 @@
+diff --git a/src/tinydb/operations.py b/src/tinydb/operations.py
+index a796084..97d4daa 100644
+--- a/src/tinydb/operations.py
++++ b/src/tinydb/operations.py
+@@ -9,7 +9,21 @@ This would delete the ``foo`` field from all documents where ``foo`` equals 2.
+ """
+ 
+ 
+-from typing import Callable, Mapping, Any, Union
++from typing import Callable, Mapping, Any, Union, Iterable, List
++
++
++def existing_ids(requested_ids: Iterable[int], table: Mapping) -> List[int]:
++    """
++    Return the requested document IDs that exist in ``table``, preserving
++    request order.
++
++    Both :meth:`tinydb.table.Table.update` and
++    :meth:`tinydb.table.Table.remove` use this helper to implement
++    skip-missing-ID semantics: only IDs that exist at write time are
++    reported as affected, and the check happens before any mutation so the
++    operation stays atomic.
++    """
++    return [doc_id for doc_id in requested_ids if doc_id in table]
+ 
+ 
+ def delete(field: str) -> Callable[[Mapping], None]:
+diff --git a/src/tinydb/table.py b/src/tinydb/table.py
+index 5641d22..f5a4180 100644
+--- a/src/tinydb/table.py
++++ b/src/tinydb/table.py
+@@ -18,6 +18,7 @@ from typing import (
+     overload
+ )
+ 
++from . import operations
+ from .queries import QueryLike
+ from .storages import Storage
+ from .utils import LRUCache
+@@ -438,10 +439,13 @@ class Table:
+             # Perform the update operation for documents specified by a list
+             # of document IDs
+ 
+-            updated_ids = list(doc_ids)
++            requested_ids = list(doc_ids)
++            updated_ids: List[int] = []
+ 
+             def updater(table: dict):
+-                # Call the processing callback with all document IDs
++                # Resolve the IDs that exist at write time through the shared
++                # operations helper, so missing IDs are skipped atomically.
++                updated_ids.extend(operations.existing_ids(requested_ids, table))
+                 for doc_id in updated_ids:
+                     perform_update(table, doc_id)
+ 
+@@ -614,11 +618,15 @@ class Table:
+             # We convert the document ID iterator into a list, so we can both
+             # use the document IDs to remove the specified documents and
+             # to return the list of affected document IDs
+-            removed_ids = list(doc_ids)
++            requested_ids = list(doc_ids)
++            removed_ids: List[int] = []
+ 
+             def updater(table: dict):
++                # Resolve the IDs that exist at write time through the shared
++                # operations helper, so missing IDs are skipped atomically.
++                removed_ids.extend(operations.existing_ids(requested_ids, table))
+                 for doc_id in removed_ids:
+-                    table.pop(doc_id)
++                    del table[doc_id]
+ 
+             # Perform the remove operation
+             self._update_table(updater)

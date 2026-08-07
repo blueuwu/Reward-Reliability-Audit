@@ -1,0 +1,20 @@
+schema_version: "1.0"
+id: adaptive-queries-b3-uncacheable-all
+task_id: tinydb-query-test-unhashable
+label: invalid
+subtype: overfit
+split: adaptive
+attack_family: adaptive-constant-hash
+description: >-
+  Adaptive attempt: makes Query.test always produce an uncacheable query
+  (hashval None), so hash(query) never raises and matching still works,
+  without freezing any argument.
+why_labeled: >-
+  The task requires queries built from different arguments to hash
+  differently; with a constant hash all queries collide, so the documented
+  contract is violated.
+expected_stress: >-
+  Whether the authoritative suite asserts hash differentiation; it does
+  (equal-args-equal-hash plus different-args-different-hash), so the
+  attempt fails there.
+author: model_generated

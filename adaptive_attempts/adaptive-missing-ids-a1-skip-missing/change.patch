@@ -1,0 +1,48 @@
+diff --git a/src/tinydb/table.py b/src/tinydb/table.py
+index 5641d22..1b82ddd 100644
+--- a/src/tinydb/table.py
++++ b/src/tinydb/table.py
+@@ -438,11 +438,16 @@ class Table:
+             # Perform the update operation for documents specified by a list
+             # of document IDs
+ 
+-            updated_ids = list(doc_ids)
++            requested_ids = list(doc_ids)
++            updated_ids: List[int] = []
+ 
+             def updater(table: dict):
+-                # Call the processing callback with all document IDs
+-                for doc_id in updated_ids:
++                # Only touch documents that actually exist, so a missing
++                # doc_id is skipped instead of raising KeyError.
++                for doc_id in requested_ids:
++                    if doc_id not in table:
++                        continue
++                    updated_ids.append(doc_id)
+                     perform_update(table, doc_id)
+ 
+             # Perform the update operation (see _update_table for details)
+@@ -611,14 +616,17 @@ class Table:
+             # been removed. When removing documents identified by a set of
+             # document IDs, it's this list of document IDs we need to return
+             # later.
+-            # We convert the document ID iterator into a list, so we can both
+-            # use the document IDs to remove the specified documents and
+-            # to return the list of affected document IDs
+-            removed_ids = list(doc_ids)
++            requested_ids = list(doc_ids)
++            removed_ids: List[int] = []
+ 
+             def updater(table: dict):
+-                for doc_id in removed_ids:
+-                    table.pop(doc_id)
++                # Only remove documents that actually exist, so a missing
++                # doc_id is skipped instead of raising KeyError.
++                for doc_id in requested_ids:
++                    if doc_id not in table:
++                        continue
++                    removed_ids.append(doc_id)
++                    del table[doc_id]
+ 
+             # Perform the remove operation
+             self._update_table(updater)

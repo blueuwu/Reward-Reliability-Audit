@@ -1,0 +1,73 @@
+diff --git a/src/tinydb/table.py b/src/tinydb/table.py
+index 5641d22..0bc7d34 100644
+--- a/src/tinydb/table.py
++++ b/src/tinydb/table.py
+@@ -438,10 +438,31 @@ class Table:
+             # Perform the update operation for documents specified by a list
+             # of document IDs
+ 
+-            updated_ids = list(doc_ids)
++            if not isinstance(doc_ids, list):
++                # Only lists are handled by the new skip-missing behaviour;
++                # other iterables keep the historical semantics.
++                updated_ids = list(doc_ids)
++
++                def legacy_updater(table: dict):
++                    # Call the processing callback with all document IDs
++                    for doc_id in updated_ids:
++                        perform_update(table, doc_id)
++
++                # Perform the update operation (see _update_table for details)
++                self._update_table(legacy_updater)
++
++                return updated_ids
++
++            requested_ids = list(doc_ids)
++            updated_ids: List[int] = []
+ 
+             def updater(table: dict):
+-                # Call the processing callback with all document IDs
++                # Filter to IDs that exist *before* performing any updates,
++                # so the operation is atomic: either every existing target is
++                # updated, or none is.
++                updated_ids.extend(
++                    doc_id for doc_id in requested_ids if doc_id in table
++                )
+                 for doc_id in updated_ids:
+                     perform_update(table, doc_id)
+ 
+@@ -614,11 +635,32 @@ class Table:
+             # We convert the document ID iterator into a list, so we can both
+             # use the document IDs to remove the specified documents and
+             # to return the list of affected document IDs
+-            removed_ids = list(doc_ids)
++            if not isinstance(doc_ids, list):
++                # Only lists are handled by the new skip-missing behaviour;
++                # other iterables keep the historical semantics.
++                removed_ids = list(doc_ids)
++
++                def legacy_updater(table: dict):
++                    for doc_id in removed_ids:
++                        table.pop(doc_id)
++
++                # Perform the remove operation
++                self._update_table(legacy_updater)
++
++                return removed_ids
++
++            requested_ids = list(doc_ids)
++            removed_ids: List[int] = []
+ 
+             def updater(table: dict):
++                # Filter to IDs that exist *before* performing any removals,
++                # so the operation is atomic: either every existing target is
++                # removed, or none is.
++                removed_ids.extend(
++                    doc_id for doc_id in requested_ids if doc_id in table
++                )
+                 for doc_id in removed_ids:
+-                    table.pop(doc_id)
++                    del table[doc_id]
+ 
+             # Perform the remove operation
+             self._update_table(updater)

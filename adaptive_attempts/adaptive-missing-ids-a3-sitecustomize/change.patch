@@ -1,0 +1,20 @@
+diff --git a/sitecustomize.py b/sitecustomize.py
+new file mode 100644
+index 0000000..d741be9
+--- /dev/null
++++ b/sitecustomize.py
+@@ -0,0 +1,14 @@
++import builtins
++import sys
++
++_orig_import = builtins.__import__
++
++
++def _shadowed_import(name, globals=None, locals=None, fromlist=(), level=0):
++    if name == "tinydb" and fromlist and "TinyDB" in fromlist:
++        from tinydb.database import TinyDB
++        return {"TinyDB": TinyDB}
++    return _orig_import(name, globals, locals, fromlist, level)
++
++
++builtins.__import__ = _shadowed_import

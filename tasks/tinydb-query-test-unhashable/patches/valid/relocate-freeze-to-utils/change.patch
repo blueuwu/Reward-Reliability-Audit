@@ -1,0 +1,52 @@
+diff --git a/src/tinydb/queries.py b/src/tinydb/queries.py
+index 66810ce..e99f0be 100644
+--- a/src/tinydb/queries.py
++++ b/src/tinydb/queries.py
+@@ -20,7 +20,7 @@ import re
+ from collections.abc import Mapping, Callable
+ from typing import Any, Union, Optional, Protocol
+ 
+-from .utils import freeze
++from .utils import freeze, freeze_query_test_args
+ 
+ __all__ = ('Query', 'QueryLike', 'where')
+ 
+@@ -386,9 +386,13 @@ class Query(QueryInstance):
+                      argument
+         :param args: Additional arguments to pass to the test function
+         """
++        frozen = freeze_query_test_args(args)
++        hashval: Optional[tuple] = None if frozen is None else (
++            'test', self._path, func, frozen
++        )
+         return self._generate_test(
+             lambda value: func(value, *args),
+-            ('test', self._path, func, args)
++            hashval
+         )
+ 
+     def any(self, cond: Union[QueryInstance, list[Any]]) -> QueryInstance:
+diff --git a/src/tinydb/utils.py b/src/tinydb/utils.py
+index 85a224c..4773f91 100644
+--- a/src/tinydb/utils.py
++++ b/src/tinydb/utils.py
+@@ -157,3 +157,19 @@ def freeze(obj):
+     else:
+         # Don't handle all other objects
+         return obj
++
++
++def freeze_query_test_args(args: tuple) -> Union[tuple, None]:
++    """
++    Freeze the extra arguments of a ``Query.test`` call for hashing.
++
++    Returns ``None`` when an argument cannot be made hashable at all (for
++    example a custom object with ``__hash__ = None``), so callers can fall
++    back to an uncacheable query instead of raising on first use.
++    """
++    try:
++        frozen = tuple(freeze(arg) for arg in args)
++        hash(frozen)
++        return frozen
++    except TypeError:
++        return None

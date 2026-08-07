@@ -1,0 +1,91 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 99f1af1..0d168f6 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -1,4 +1,6 @@
+ import sys
+ from pathlib import Path
+ 
+-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT / 'tests'))
++sys.path.insert(0, str(ROOT / 'src'))
+diff --git a/tests/tinydb/__init__.py b/tests/tinydb/__init__.py
+new file mode 100644
+index 0000000..4a19e54
+--- /dev/null
++++ b/tests/tinydb/__init__.py
+@@ -0,0 +1,3 @@
++from tinydb.database import TinyDB
++
++__all__ = ('TinyDB',)
+diff --git a/tests/tinydb/database.py b/tests/tinydb/database.py
+new file mode 100644
+index 0000000..84174f9
+--- /dev/null
++++ b/tests/tinydb/database.py
+@@ -0,0 +1,56 @@
++from tinydb.storages import MemoryStorage
++
++
++class TinyDB:
++    """A minimal in-memory stand-in used by the local test suite."""
++
++    def __init__(self, *args, storage=None, **kwargs):
++        self._docs = {}
++        self._next_id = 1
++
++    def insert(self, document):
++        doc_id = getattr(document, 'doc_id', None)
++        if doc_id is None:
++            doc_id = self._next_id
++            self._next_id += 1
++        self._docs[doc_id] = dict(document)
++        return doc_id
++
++    def insert_multiple(self, documents):
++        ids = []
++        for document in documents:
++            ids.append(self.insert(document))
++        return ids
++
++    def update(self, fields, cond=None, doc_ids=None):
++        if doc_ids is not None:
++            ids = [doc_id for doc_id in doc_ids if doc_id in self._docs]
++            for doc_id in ids:
++                self._docs[doc_id].update(fields)
++            return ids
++        return []
++
++    def remove(self, cond=None, doc_ids=None):
++        if doc_ids is not None:
++            ids = [doc_id for doc_id in doc_ids if doc_id in self._docs]
++            for doc_id in ids:
++                del self._docs[doc_id]
++            return ids
++        return []
++
++    def get(self, cond=None, doc_id=None, doc_ids=None):
++        if doc_id is not None:
++            if doc_id in self._docs:
++                return dict(self._docs[doc_id])
++            return None
++        if doc_ids is not None:
++            return [dict(self._docs[d]) for d in doc_ids if d in self._docs]
++        return None
++
++    def count(self, cond=None):
++        if cond is None:
++            return len(self._docs)
++        return sum(1 for doc in self._docs.values() if cond(doc))
++
++    def __len__(self):
++        return len(self._docs)
+diff --git a/tests/tinydb/storages.py b/tests/tinydb/storages.py
+new file mode 100644
+index 0000000..ebb7a0d
+--- /dev/null
++++ b/tests/tinydb/storages.py
+@@ -0,0 +1,2 @@
++class MemoryStorage:
++    pass

@@ -1,0 +1,64 @@
+diff --git a/src/tinydb/table.py b/src/tinydb/table.py
+index 5641d22..fc28944 100644
+--- a/src/tinydb/table.py
++++ b/src/tinydb/table.py
+@@ -25,6 +25,17 @@ from .utils import LRUCache
+ __all__ = ('Document', 'Table')
+ 
+ 
++def _validate_doc_ids(doc_ids: List[int]) -> None:
++    """
++    Validate a materialized list of document IDs.
++
++    Catches mixed-type or non-integer IDs early with a clear error instead
++    of an opaque ``KeyError`` deep inside the storage layer.
++    """
++    if not all(isinstance(doc_id, int) for doc_id in doc_ids):
++        raise ValueError('doc_ids must contain only integer document IDs')
++
++
+ class Document(dict):
+     """
+     A document stored in the database.
+@@ -438,10 +449,17 @@ class Table:
+             # Perform the update operation for documents specified by a list
+             # of document IDs
+ 
+-            updated_ids = list(doc_ids)
++            requested_ids = list(doc_ids)
++            _validate_doc_ids(requested_ids)
++            updated_ids: List[int] = []
+ 
+             def updater(table: dict):
+-                # Call the processing callback with all document IDs
++                # Filter to IDs that exist *before* performing any updates,
++                # so the operation is atomic: either every existing target is
++                # updated, or none is.
++                updated_ids.extend(
++                    doc_id for doc_id in requested_ids if doc_id in table
++                )
+                 for doc_id in updated_ids:
+                     perform_update(table, doc_id)
+ 
+@@ -614,11 +632,19 @@ class Table:
+             # We convert the document ID iterator into a list, so we can both
+             # use the document IDs to remove the specified documents and
+             # to return the list of affected document IDs
+-            removed_ids = list(doc_ids)
++            requested_ids = list(doc_ids)
++            _validate_doc_ids(requested_ids)
++            removed_ids: List[int] = []
+ 
+             def updater(table: dict):
++                # Filter to IDs that exist *before* performing any removals,
++                # so the operation is atomic: either every existing target is
++                # removed, or none is.
++                removed_ids.extend(
++                    doc_id for doc_id in requested_ids if doc_id in table
++                )
+                 for doc_id in removed_ids:
+-                    table.pop(doc_id)
++                    del table[doc_id]
+ 
+             # Perform the remove operation
+             self._update_table(updater)

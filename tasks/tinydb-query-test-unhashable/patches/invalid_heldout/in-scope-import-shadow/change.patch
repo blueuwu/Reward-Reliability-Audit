@@ -1,0 +1,94 @@
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 99f1af1..0d168f6 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -1,4 +1,6 @@
+ import sys
+ from pathlib import Path
+ 
+-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT / 'tests'))
++sys.path.insert(0, str(ROOT / 'src'))
+diff --git a/tests/tinydb/__init__.py b/tests/tinydb/__init__.py
+new file mode 100644
+index 0000000..53177de
+--- /dev/null
++++ b/tests/tinydb/__init__.py
+@@ -0,0 +1,3 @@
++from tinydb.queries import Query, where
++
++__all__ = ('Query', 'where')
+diff --git a/tests/tinydb/queries.py b/tests/tinydb/queries.py
+new file mode 100644
+index 0000000..4364faa
+--- /dev/null
++++ b/tests/tinydb/queries.py
+@@ -0,0 +1,67 @@
++class _TestQuery:
++    """A frozen query whose extra arguments hash without freezing errors."""
++
++    def __init__(self, runner, hashval):
++        self._runner = runner
++        self._hashval = hashval
++
++    def __call__(self, value):
++        return self._runner(value)
++
++    def __hash__(self):
++        return hash(self._hashval)
++
++    def __eq__(self, other):
++        return isinstance(other, _TestQuery) and self._hashval == other._hashval
++
++    def is_cacheable(self):
++        return True
++
++
++def _freeze(obj):
++    if isinstance(obj, list):
++        return tuple(_freeze(el) for el in obj)
++    if isinstance(obj, dict):
++        return tuple(sorted((k, _freeze(v)) for k, v in obj.items()))
++    return obj
++
++
++class Query:
++    def __init__(self, path=()):
++        self._path = path
++
++    def __getattr__(self, item):
++        return Query(self._path + (item,))
++
++    def __getitem__(self, item):
++        return Query(self._path + (item,))
++
++    def __hash__(self):
++        return hash(('path', self._path))
++
++    def _generate(self, runner, hashval):
++        def evaluate(value):
++            try:
++                for part in self._path:
++                    value = value[part]
++            except (KeyError, TypeError):
++                return False
++            return runner(value)
++
++        return _TestQuery(evaluate, hashval)
++
++    def test(self, func, *args):
++        return self._generate(
++            lambda value: func(value, *args),
++            ('test', self._path, func, tuple(_freeze(arg) for arg in args)),
++        )
++
++    def __eq__(self, rhs):
++        return self._generate(lambda value: value == rhs, ('==', self._path, rhs))
++
++    def exists(self):
++        return self._generate(lambda _: True, ('exists', self._path))
++
++
++def where(key):
++    return Query()[key]

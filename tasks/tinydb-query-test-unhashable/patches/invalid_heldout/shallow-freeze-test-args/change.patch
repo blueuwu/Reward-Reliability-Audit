@@ -1,0 +1,74 @@
+diff --git a/src/tinydb/queries.py b/src/tinydb/queries.py
+index 66810ce..182b0af 100644
+--- a/src/tinydb/queries.py
++++ b/src/tinydb/queries.py
+@@ -20,7 +20,7 @@ import re
+ from collections.abc import Mapping, Callable
+ from typing import Any, Union, Optional, Protocol
+ 
+-from .utils import freeze
++from .utils import FrozenDict, freeze
+ 
+ __all__ = ('Query', 'QueryLike', 'where')
+ 
+@@ -29,6 +29,51 @@ def is_sequence(obj):
+     return hasattr(obj, '__iter__')
+ 
+ 
++def _shallow_freeze(obj):
++    """Make a test argument hashable by freezing only its outer layer.
++
++    Lists and tuples are recursed; dicts become ``FrozenDict`` objects whose
++    values are left untouched, so mappings nested more than one level deep
++    remain unhashable.
++    """
++    if isinstance(obj, dict):
++        return FrozenDict((k, v) for k, v in obj.items())
++    if isinstance(obj, (list, tuple)):
++        return tuple(_shallow_freeze(el) for el in obj)
++    return obj
++
++
++def _contains_unfrozen_container(obj):
++    """Return True when *obj* still contains a raw container after freezing."""
++    if isinstance(obj, (dict, list, set)) and not isinstance(obj, FrozenDict):
++        return True
++    if isinstance(obj, FrozenDict):
++        return any(_contains_unfrozen_container(v) for v in obj.values())
++    if isinstance(obj, tuple):
++        return any(_contains_unfrozen_container(el) for el in obj)
++    return False
++
++
++def _test_hashval(path, func, args):
++    """Build the hash value for a ``Query.test`` call.
++
++    Freezes every extra argument with a shallow freeze, so list, dict and
++    tuple-of-dict arguments produce a stable hash. Arguments that cannot be
++    made hashable at all (e.g. objects with ``__hash__ = None``) yield an
++    uncacheable query. Deeply nested mappings are left raw so that hashing
++    them keeps raising, matching the baseline behaviour.
++    """
++    frozen = tuple(_shallow_freeze(arg) for arg in args)
++    hashval = ('test', path, func, frozen)
++    if _contains_unfrozen_container(frozen):
++        return hashval
++    try:
++        hash(hashval)
++    except TypeError:
++        return None
++    return hashval
++
++
+ class QueryLike(Protocol):
+     """
+     A typing protocol that acts like a query.
+@@ -388,7 +433,7 @@ class Query(QueryInstance):
+         """
+         return self._generate_test(
+             lambda value: func(value, *args),
+-            ('test', self._path, func, args)
++            _test_hashval(self._path, func, args)
+         )
+ 
+     def any(self, cond: Union[QueryInstance, list[Any]]) -> QueryInstance:

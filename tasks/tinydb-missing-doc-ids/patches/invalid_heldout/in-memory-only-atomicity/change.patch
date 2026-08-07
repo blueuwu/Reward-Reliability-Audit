@@ -1,0 +1,69 @@
+diff --git a/src/tinydb/table.py b/src/tinydb/table.py
+index 5641d22..088097b 100644
+--- a/src/tinydb/table.py
++++ b/src/tinydb/table.py
+@@ -438,16 +438,22 @@ class Table:
+             # Perform the update operation for documents specified by a list
+             # of document IDs
+ 
+-            updated_ids = list(doc_ids)
+-
+-            def updater(table: dict):
+-                # Call the processing callback with all document IDs
+-                for doc_id in updated_ids:
+-                    perform_update(table, doc_id)
+-
+-            # Perform the update operation (see _update_table for details)
+-            self._update_table(updater)
+-
++            # Resolve the raw table and mutate it in place. The in-memory
++            # copy satisfies the update contract; the storage is only
++            # written back when the operation goes through ``_update_table``.
++            requested_ids = list(doc_ids)
++            raw_table = self._storage.read()
++            table = raw_table.get(self.name, {}) if isinstance(raw_table, dict) else {}
++            updated_ids: List[int] = []
++            for doc_id in requested_ids:
++                doc = table.get(str(doc_id))
++                if doc is None:
++                    continue
++                if callable(fields):
++                    fields(doc)
++                else:
++                    doc.update(fields)
++                updated_ids.append(doc_id)
+             return updated_ids
+ 
+         elif cond is not None:
+@@ -611,18 +617,20 @@ class Table:
+             # been removed. When removing documents identified by a set of
+             # document IDs, it's this list of document IDs we need to return
+             # later.
+-            # We convert the document ID iterator into a list, so we can both
+-            # use the document IDs to remove the specified documents and
+-            # to return the list of affected document IDs
+-            removed_ids = list(doc_ids)
+-
+-            def updater(table: dict):
+-                for doc_id in removed_ids:
+-                    table.pop(doc_id)
+-
+-            # Perform the remove operation
+-            self._update_table(updater)
+ 
++            # Resolve the raw table and mutate it in place, mirroring the
++            # update path: missing IDs are skipped and the returned list only
++            # contains the IDs that were actually removed.
++            requested_ids = list(doc_ids)
++            raw_table = self._storage.read()
++            table = raw_table.get(self.name, {}) if isinstance(raw_table, dict) else {}
++            removed_ids: List[int] = []
++            for doc_id in requested_ids:
++                key = str(doc_id)
++                if key not in table:
++                    continue
++                del table[key]
++                removed_ids.append(doc_id)
+             return removed_ids
+ 
+         if cond is not None:
