@@ -57,10 +57,11 @@ def _resolve_artifact_safe(project_root: Path, experiment_dir: Path, recorded: s
     """Resolve an artifact path safely and require it inside the experiment dir."""
     if not recorded or "\x00" in recorded:
         raise ReportError(f"invalid artifact path: {recorded!r}")
-    reason = classify_repository_relative(recorded)
+    normalized = recorded.replace("\\", "/")
+    reason = classify_repository_relative(normalized)
     if reason is not None:
         raise ReportError(f"unsafe artifact path {recorded!r}: {reason}")
-    candidate = project_root / Path(recorded)
+    candidate = project_root / Path(normalized)
     if not candidate.is_file():
         raise ReportError(f"missing artifact: {recorded}")
     try:

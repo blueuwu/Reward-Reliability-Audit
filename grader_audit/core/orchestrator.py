@@ -399,7 +399,14 @@ def _run_validation_repeat(
     run_id = uuid.uuid4().hex
     runs: dict[str, ValidationRun] = {}
     for grader_name in (GRADER_NAIVE, GRADER_HARDENED_V1, GRADER_ORACLE):
-        run = _run_validation_grader(runtime, case, grader_name, runner, image)
+        run, process_result = _run_validation_grader(runtime, case, grader_name, runner, image)
+        process = run.process
+        if process is not None and process_result is not None:
+            artifact_id = uuid.uuid4().hex
+            stdout_path = recorder.write_artifact(artifact_id, "stdout", process_result.stdout)
+            stderr_path = recorder.write_artifact(artifact_id, "stderr", process_result.stderr)
+            process.stdout_path = stdout_path.as_posix()
+            process.stderr_path = stderr_path.as_posix()
         runs[grader_name] = run
     stable = _validation_case_stable(case, runs, runtime)
     return ValidationRecord(
@@ -423,7 +430,7 @@ def _run_validation_grader(
     grader_name: str,
     runner: Runner,
     image: str,
-) -> ValidationRun:
+) -> tuple[ValidationRun, ProcessResult | None]:
     manager = WorkspaceManager(runtime.task)
     workspace = manager.materialize()
     try:
@@ -432,8 +439,11 @@ def _run_validation_grader(
             gold_patch = _find_gold_patch(runtime.task)
             result = manager.apply_patch_to(workspace, gold_patch)
             if not result.ok:
-                return _invalid_validation_run(
-                    grader_name, workspace, f"gold patch apply failed: {result.error}"
+                return (
+                    _invalid_validation_run(
+                        grader_name, workspace, f"gold patch apply failed: {result.error}"
+                    ),
+                    None,
                 )
             pre_grade = workspace.snapshot()
 
@@ -478,7 +488,7 @@ def _run_naive_validation(
     pre_grade: WorkspaceSnapshot | None,
     image: str,
     runner: Runner,
-) -> ValidationRun:
+) -> tuple[ValidationRun, ProcessResult | None]:
     manifest = runtime.task.manifest
     context = NaiveContext(
         argv=manifest.grading.naive.argv,
@@ -493,7 +503,8 @@ def _run_naive_validation(
     if pre_grade is None:
         pre_grade = workspace.pristine_snapshot
     post = workspace.snapshot()
-    return _validation_run_from_outcome(GRADER_NAIVE, result.outcome, workspace, pre_grade, post)
+    run = _validation_run_from_outcome(GRADER_NAIVE, result.outcome, workspace, pre_grade, post)
+    return run, result.process_result
 
 
 def _run_authoritative_validation(
@@ -502,7 +513,7 @@ def _run_authoritative_validation(
     pre_grade: WorkspaceSnapshot | None,
     image: str,
     runner: Runner,
-) -> ValidationRun:
+) -> tuple[ValidationRun, ProcessResult | None]:
     manifest = runtime.task.manifest
     pre_asset_hash = hash_grader_assets(
         runtime.task.task_dir / manifest.grading.hardened_v1.tests_dir
@@ -574,7 +585,7 @@ def _run_authoritative_validation(
     _cleanup_evidence(suite.evidence_dir)
     run = _validation_run_from_outcome(GRADER_HARDENED_V1, outcome, workspace, pre_grade, post)
     run.node_outcomes = node_outcomes
-    return run
+    return run, suite.result
 
 
 def _cleanup_evidence(evidence_dir: Path) -> None:
@@ -589,7 +600,7 @@ def _run_oracle_validation(
     pre_grade: WorkspaceSnapshot | None,
     image: str,
     runner: Runner,
-) -> ValidationRun:
+) -> tuple[ValidationRun, ProcessResult | None]:
     result = run_oracle_for_labeling(runtime, workspace, runner=runner, image=image)
     if pre_grade is None:
         pre_grade = workspace.pristine_snapshot
@@ -609,7 +620,7 @@ def _run_oracle_validation(
         duration_seconds=0.0,
         node_outcomes=result.node_outcomes,
     )
-    return run
+    return run, None
 
 
 def _validation_run_from_outcome(
@@ -779,8 +790,8 @@ def build_patch_record(
     if process is not None and process_result is not None:
         stdout_path = recorder.write_artifact(run_id, "stdout", process_result.stdout)
         stderr_path = recorder.write_artifact(run_id, "stderr", process_result.stderr)
-        process.stdout_path = str(stdout_path)
-        process.stderr_path = str(stderr_path)
+        process.stdout_path = stdout_path.as_posix()
+        process.stderr_path = stderr_path.as_posix()
 
     git = git_info(project_root)
     if grader_frozen_commit is not None:

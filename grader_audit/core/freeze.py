@@ -1,4 +1,4 @@
-﻿"""Normative grader-v1 freeze protocol (Section 27.14).
+"""Normative grader-v1 freeze protocol (Section 27.14).
 
 ``grader-audit freeze --grader hardened_v1 --git-tag grader-v1-frozen`` freezes
 hardened grader v1 before any held-out or adaptive evaluation. It refuses to
@@ -346,20 +346,25 @@ def _has_controlled_plan(exp_dir: Path) -> bool:
         data = json.loads(metadata.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
         return False
-    return isinstance(data.get("plan"), dict)
+    if not isinstance(data.get("plan"), dict):
+        return False
+    plan = cast(dict[str, object], data["plan"])
+    controlled = plan.get("controlled")
+    return isinstance(controlled, list) and len(cast(list[object], controlled)) > 0
 
 
-def _resolve_artifact_in_experiment(
+def resolve_artifact_in_experiment(
     project_root: Path, exp_dir: Path, recorded: str
 ) -> Path | None:
-    """Resolve an artifact path-safely and require it inside the experiment dir."""
+    """Resolve an artifact path path-safely and require it inside the experiment dir."""
     from grader_audit.core.path_rules import classify_repository_relative
 
     if not recorded or "\x00" in recorded:
         return None
-    if classify_repository_relative(recorded) is not None:
+    normalized = recorded.replace("\\", "/")
+    if classify_repository_relative(normalized) is not None:
         return None
-    candidate = project_root / Path(recorded)
+    candidate = project_root / Path(normalized)
     if not candidate.is_file():
         return None
     try:
@@ -516,7 +521,7 @@ def controlled_experiment_eligible(
                             f"{record.grader.name} {record.task.id}/{patch.id}"
                         )
                     elif recorded and sha:
-                        artifact = _resolve_artifact_in_experiment(
+                        artifact = resolve_artifact_in_experiment(
                             project_root, exp_dir, recorded
                         )
                         if artifact is None:
@@ -672,7 +677,7 @@ def validation_experiment_eligible(
                                 f"{task.manifest.id} {case} repeat {idx}"
                             )
                         elif recorded and sha:
-                            artifact = _resolve_artifact_in_experiment(
+                            artifact = resolve_artifact_in_experiment(
                                 project_root, exp_dir, recorded
                             )
                             if artifact is None:

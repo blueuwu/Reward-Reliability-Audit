@@ -475,6 +475,33 @@ def test_validation_artifact_outside_experiment_rejected(tmp_path: Path) -> None
         _load(exp_dir)
 
 
+def test_artifact_native_separators_accepted(tmp_path: Path) -> None:
+    exp_dir = _build_experiment(tmp_path)
+    record = EvaluationRecord.model_validate(
+        json.loads(
+            (exp_dir / "naive" / "development" / "task-a" / "gold.json")
+            .read_text(encoding="utf-8")
+        )
+    )
+    assert record.process is not None
+    assert record.process.stdout_path is not None
+    record.process.stdout_path = record.process.stdout_path.replace("/", "\\")
+    (exp_dir / "naive" / "development" / "task-a" / "gold.json").write_bytes(
+        serialize_record(record)
+    )
+    _load(exp_dir)
+
+
+def test_validation_artifact_native_separators_accepted(tmp_path: Path) -> None:
+    exp_dir = _build_experiment(tmp_path)
+    (exp_dir / "artifacts").mkdir(parents=True, exist_ok=True)
+    (exp_dir / "artifacts" / "validation.stdout").write_bytes(b"validation\n")
+    _add_validation(
+        exp_dir, artifact_rel=rf"results\raw\{EXP_ID}\artifacts\validation.stdout"
+    )
+    _load(exp_dir)
+
+
 def test_evaluation_record_cannot_smuggle_validation_phase(tmp_path: Path) -> None:
     exp_dir = _build_experiment(tmp_path)
     path = exp_dir / "naive" / "development" / "task-a" / "gold.json"

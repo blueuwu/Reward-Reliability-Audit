@@ -23,6 +23,7 @@ from grader_audit.core.freeze import (
     head_commit,
     protected_files,
     real_commit_sha,
+    resolve_artifact_in_experiment,
     result_set_files,
     run_freeze,
     tag_exists,
@@ -267,6 +268,29 @@ def test_aggregate_is_deterministic() -> None:
     assert first == second
     changed = aggregate_rel_hashes({"b": "2" * 64, "a": "3" * 64})
     assert first != changed
+
+
+def test_resolve_artifact_accepts_native_separators(tmp_path: Path) -> None:
+    exp_dir = tmp_path / "exp"
+    (exp_dir / "artifacts").mkdir(parents=True)
+    artifact = exp_dir / "artifacts" / "a.stdout"
+    artifact.write_bytes(b"x\n")
+    resolved = resolve_artifact_in_experiment(
+        tmp_path, exp_dir, r"exp\artifacts\a.stdout"
+    )
+    assert resolved is not None
+    assert resolved.resolve() == artifact.resolve()
+
+
+def test_resolve_artifact_rejects_escape_with_native_separators(tmp_path: Path) -> None:
+    exp_dir = tmp_path / "exp"
+    exp_dir.mkdir(parents=True)
+    outside = tmp_path / "outside.txt"
+    outside.write_bytes(b"x\n")
+    resolved = resolve_artifact_in_experiment(
+        tmp_path, exp_dir, r"..\outside.txt"
+    )
+    assert resolved is None
 
 
 # ---------------------------------------------------------------------------
