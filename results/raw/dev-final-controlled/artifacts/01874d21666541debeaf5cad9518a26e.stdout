@@ -1,0 +1,23 @@
+..F.F                                                                    [100%]
+=================================== FAILURES ===================================
+_________________ test_titleize_non_ascii_second_word_accented _________________
+/opt/grader/tests/test_titleize.py:13: in test_titleize_non_ascii_second_word_accented
+    assert titleize("un éléphant") == "Un Éléphant"
+E   AssertionError: assert 'un éléphant' == 'Un Éléphant'
+E     
+E     - Un Éléphant
+E     ? ^  ^
+E     + un éléphant
+E     ? ^  ^
+______________________ test_titleize_underscore_preserved ______________________
+/opt/grader/tests/test_titleize.py:21: in test_titleize_underscore_preserved
+    assert titleize("some_title_here") == "Some Title Here"
+E   AssertionError: assert 'some_title_here' == 'Some Title Here'
+E     
+E     - Some Title Here
+E     + some_title_here
+=========================== short test summary info ============================
+FAILED ../opt/grader/tests/test_titleize.py::test_titleize_non_ascii_second_word_accented
+FAILED ../opt/grader/tests/test_titleize.py::test_titleize_underscore_preserved
+2 failed, 3 passed in 0.06s
+GRADER_SUMMARY {"collected": ["test_titleize.py::test_titleize_ascii_sentence_preserved", "test_titleize.py::test_titleize_capitalizes_non_ascii_second_word", "test_titleize.py::test_titleize_non_ascii_second_word_accented", "test_titleize.py::test_titleize_non_ascii_second_word_already_capitalized", "test_titleize.py::test_titleize_underscore_preserved"], "counts": {"failed": 2, "passed": 3}, "exit_code": 1, "expected": ["test_titleize.py::test_titleize_ascii_sentence_preserved", "test_titleize.py::test_titleize_capitalizes_non_ascii_second_word", "test_titleize.py::test_titleize_non_ascii_second_word_accented", "test_titleize.py::test_titleize_non_ascii_second_word_already_capitalized", "test_titleize.py::test_titleize_underscore_preserved"], "report_exists": true}
