@@ -71,11 +71,11 @@ jobs:
           # namespace on ubuntu-24.04, and BOTH must be lifted:
           #   1. this sysctl, which denies unprivileged userns creation to
           #      AppArmor-*unconfined* processes;
-          #   2. the docker-default AppArmor profile, which does not grant
-          #      `userns create` to *confined* ones -- lifted per-container by
-          #      `--security-opt apparmor=unconfined` in start_deployment_container.
-          # The sysctl alone is not sufficient: it governs only the unconfined
-          # case, so a container under docker-default stays denied regardless.
+          #   2. Docker's AppArmor and seccomp profiles, which restrict nested
+          #      namespace setup -- both are lifted per-container by
+          #      start_deployment_container, without adding CAP_SYS_ADMIN.
+          # The sysctl alone is not sufficient: it governs the unconfined host
+          # policy but does not override Docker's per-container profiles.
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
           sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
 

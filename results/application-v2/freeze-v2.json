@@ -1,5 +1,5 @@
 {
-  "aggregate_sha256": "b56ee9ded2ace9c5a4a79e711717cc798196e68c0867cfbc5774349e8dd3e449",
+  "aggregate_sha256": "32db0390188ce3cc7f8db4d95a946d30ba4419850847cf17324de116f1bc8384",
   "files": {
     "grader_v2/cli.py": "a3be67667501b44f63823ca56f46ce29496e94288dc2f3d957e3ae2015ee5fb2",
     "grader_v2/freeze.py": "54de24f8befb28f2145e31b61e922072c6d90a69480b82aa65aa95909b0ab078",
@@ -16,7 +16,7 @@
     "grader_v2/hud/adapter.py": "f8e31759e7069bc9e384525dbe67f6eaa098c642453b8dfaec447cdce1f42492",
     "grader_v2/hud/env.py": "18797a60e390a35b506dd481815d4be1a57e9f88d018561ac4fee6d861dc7f9b",
     "grader_v2/hud/mapping.py": "49b6dcfd73bb4fd7c93afe730efa4378396e2e3fe3753405fb3488146c050dc3",
-    "grader_v2/hud/runtime.py": "f582a311c34745989c0c7bcb4c6e38d6f10e70517a5f0a798496aa4b77d7a673"
+    "grader_v2/hud/runtime.py": "8854ab6b07da117512f7312a7130f1010704a083880c4318b5d45bdc7de9f4f0"
   },
   "grader": "hardened_v2",
   "kind": "grader_v2_freeze",
@@ -49,5 +49,5 @@
       ]
     }
   ],
-  "timestamp_utc": "2026-08-07T16:12:31.421336+00:00"
+  "timestamp_utc": "2026-08-07T16:55:14.672367+00:00"
 }

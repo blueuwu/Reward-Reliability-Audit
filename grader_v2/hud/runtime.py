@@ -150,15 +150,17 @@ def start_deployment_container(
 ) -> DeploymentContainer:
     """Start the deployment container with a published control channel.
 
-    ``apparmor=unconfined`` is required, not incidental: the HUD workspace
-    isolates every agent SSH session with bwrap, which must create a user
-    namespace. Distributions that confine containers with the ``docker-default``
-    AppArmor profile (ubuntu-24.04 and later) do not grant that profile
-    ``userns create``, so ``--unshare-user-try`` silently degrades and the
-    non-optional ``--unshare-pid/ipc/uts`` that follow fail with EPERM -- every
-    command in the agent session then exits 1. Capabilities and the default
-    seccomp profile are deliberately left untouched; the container still runs
-    without CAP_SYS_ADMIN, and bwrap remains the agent isolation boundary.
+    The two ``security-opt`` entries are required, not incidental: the HUD
+    workspace isolates every agent SSH session with bwrap, which creates nested
+    user, PID, IPC, UTS, cgroup, and network namespaces. On GitHub's Ubuntu
+    runners, both the ``docker-default`` AppArmor profile and Docker's default
+    seccomp profile block parts of that namespace setup. If user-namespace
+    creation fails, ``--unshare-user-try`` silently degrades and a later
+    non-optional unshare exits with EPERM, so every agent command exits 1.
+
+    The container still receives no added capabilities (in particular, no
+    CAP_SYS_ADMIN), no host mounts, and no Docker socket. Bubblewrap remains the
+    agent filesystem/network isolation boundary.
     """
     port = host_port or _DEFAULT_HOST_PORT
     name = f"ga-hud-app-{uuid.uuid4().hex[:8]}"
@@ -177,6 +179,8 @@ def start_deployment_container(
             str(pids_limit),
             "--security-opt",
             "apparmor=unconfined",
+            "--security-opt",
+            "seccomp=unconfined",
             image,
         ],
         capture_output=True,
