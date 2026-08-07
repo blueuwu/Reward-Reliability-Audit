@@ -20,3 +20,7 @@ htmlcov/
 # Local scratch
 *.log
 .hud-workspace/
+
+# opencode tooling (untracked post-freeze; not part of the corpus or grader)
+.agents/
+skills-lock.json
