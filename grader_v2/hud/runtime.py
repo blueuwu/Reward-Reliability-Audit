@@ -148,7 +148,18 @@ def start_deployment_container(
     memory_mb: int = 2048,
     pids_limit: int = 512,
 ) -> DeploymentContainer:
-    """Start the deployment container with a published control channel."""
+    """Start the deployment container with a published control channel.
+
+    ``apparmor=unconfined`` is required, not incidental: the HUD workspace
+    isolates every agent SSH session with bwrap, which must create a user
+    namespace. Distributions that confine containers with the ``docker-default``
+    AppArmor profile (ubuntu-24.04 and later) do not grant that profile
+    ``userns create``, so ``--unshare-user-try`` silently degrades and the
+    non-optional ``--unshare-pid/ipc/uts`` that follow fail with EPERM -- every
+    command in the agent session then exits 1. Capabilities and the default
+    seccomp profile are deliberately left untouched; the container still runs
+    without CAP_SYS_ADMIN, and bwrap remains the agent isolation boundary.
+    """
     port = host_port or _DEFAULT_HOST_PORT
     name = f"ga-hud-app-{uuid.uuid4().hex[:8]}"
     result = subprocess.run(
@@ -164,6 +175,8 @@ def start_deployment_container(
             f"{memory_mb}m",
             "--pids-limit",
             str(pids_limit),
+            "--security-opt",
+            "apparmor=unconfined",
             image,
         ],
         capture_output=True,
