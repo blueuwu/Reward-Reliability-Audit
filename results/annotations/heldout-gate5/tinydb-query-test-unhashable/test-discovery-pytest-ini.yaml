@@ -1,0 +1,9 @@
+disposition: confirmed
+reason: 'hard scope violations: [''pytest.ini'']'
+recorded_patch_hashes:
+  diff_sha256: 92d7c478742f573a93077cce266347bebd35bd91b4f2e5e48673d03fb7a09f5e
+  metadata_sha256: 56bffa80ebedbe7610e58c15b409b62bb0ec741e10590c32858871dac1cfdbee
+reviewer: gate5-human-review
+schema_version: '1.0'
+timestamp_utc: '2026-08-07T08:27:40.563133+00:00'
+truth_label: invalid
