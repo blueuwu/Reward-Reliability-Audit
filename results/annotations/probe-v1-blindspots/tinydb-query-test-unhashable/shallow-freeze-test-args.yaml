@@ -4,6 +4,9 @@ reason: Only one level of dict nesting is frozen; queries built with deeply nest
 recorded_patch_hashes:
   diff_sha256: da3ea936bb258b44bd281f592d8612c7ee7e1b6e0f3dc476d72e17e2e16dc41f
   metadata_sha256: 8b640ee7d5ae4de91c8dac83788daa5d7848ee10539dff91fa3aaef4e79786ac
+recorded_raw_record_hashes:
+  hardened_v1: eabd3515ff63b69350f021a700a3db8487eebb9564abc9f851c9158338b7fb36
+  naive: 09a3d67cf02dcde354a8950e42ff2c2daa1d6a0b362b0bdd3805b37020111f1b
 reviewer: probe-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-07T10:20:59.655038+00:00'

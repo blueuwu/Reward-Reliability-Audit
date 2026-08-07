@@ -3,6 +3,9 @@ reason: 'hard scope violations: [''pytest.ini'']'
 recorded_patch_hashes:
   diff_sha256: 92d7c478742f573a93077cce266347bebd35bd91b4f2e5e48673d03fb7a09f5e
   metadata_sha256: 56bffa80ebedbe7610e58c15b409b62bb0ec741e10590c32858871dac1cfdbee
+recorded_raw_record_hashes:
+  hardened_v1: 403ff08c66522960e9868c0af8d0fc8641ce239755fabf5e18fd5f1feb568c77
+  naive: c3df178e0abba9268bd082d198afb64eb749e85c0e0dceb23b9c332ecb1f783c
 reviewer: probe-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-07T10:20:59.659035+00:00'

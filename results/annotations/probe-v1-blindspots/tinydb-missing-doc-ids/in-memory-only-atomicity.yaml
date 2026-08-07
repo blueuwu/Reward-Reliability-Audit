@@ -4,6 +4,9 @@ reason: Updates only mutate the transient in-memory table and are lost on storag
 recorded_patch_hashes:
   diff_sha256: 3e216f60ec37579cc9721116f36a66926f36a4f95074b7bfb445f83817d41f3a
   metadata_sha256: 2ae63863a96ef52f9007a479b2854ded987ab055e8cc920d9c0f69ac412e84dd
+recorded_raw_record_hashes:
+  hardened_v1: a4d2a4b621d6497ae00e754795e40659907cb5030ec26a666235c6680daacd6d
+  naive: 2860a1ac7390a04bb06c3fb364e764ec71638aee4d51229775fe6413a643c283
 reviewer: probe-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-07T10:20:59.626917+00:00'

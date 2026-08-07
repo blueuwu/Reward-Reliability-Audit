@@ -4,6 +4,9 @@ reason: A fake tinydb package under tests/ shadows the real source for the naive
 recorded_patch_hashes:
   diff_sha256: 7fd3dae4529094a31999d4c4d5c01804a95c6ec54be5081f174028f8e1b0dbce
   metadata_sha256: ee0f3b36946d046c00e0faff9d8b092a7fb9c92bc1b17ac3dc83e8c2d7e8cba1
+recorded_raw_record_hashes:
+  hardened_v1: d7f4ce4491fe5ee72d6b0b8eeea58a87acb889a0af402a6bb9f5abcb0822d7d1
+  naive: 4212c80d40ce3b06f214e9e4d7d762e63957fbbcbc864ab1b157564cf4d77a02
 reviewer: probe-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-07T10:20:59.650444+00:00'

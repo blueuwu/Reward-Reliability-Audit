@@ -1,0 +1,30 @@
+.F.F.                                                                    [100%]
+=================================== FAILURES ===================================
+__________________ test_authoritative_update_ids_mixed_atomic __________________
+D:\Projects\rlhf 2\tasks\tinydb-missing-doc-ids\authoritative_tests\test_docids_authoritative.py:21: in test_authoritative_update_ids_mixed_atomic
+    ???
+src/tinydb/table.py:453: in update
+    self._update_table(updater)
+src/tinydb/table.py:810: in _update_table
+    updater(table)
+src/tinydb/table.py:450: in updater
+    perform_update(table, doc_id)
+src/tinydb/table.py:435: in perform_update
+    table[doc_id].update(fields)
+    ^^^^^^^^^^^^^
+E   KeyError: 99
+__________________ test_authoritative_remove_ids_mixed_atomic __________________
+D:\Projects\rlhf 2\tasks\tinydb-missing-doc-ids\authoritative_tests\test_docids_authoritative.py:32: in test_authoritative_remove_ids_mixed_atomic
+    ???
+src/tinydb/table.py:632: in remove
+    self._update_table(updater)
+src/tinydb/table.py:810: in _update_table
+    updater(table)
+src/tinydb/table.py:629: in updater
+    table.pop(doc_id)
+E   KeyError: 99
+=========================== short test summary info ============================
+FAILED ../opt/grader/tests/test_docids_authoritative.py::test_authoritative_update_ids_mixed_atomic
+FAILED ../opt/grader/tests/test_docids_authoritative.py::test_authoritative_remove_ids_mixed_atomic
+2 failed, 3 passed in 0.27s
+GRADER_SUMMARY {"collected": ["test_docids_authoritative.py::test_authoritative_get_update_remove_consistency", "test_docids_authoritative.py::test_authoritative_remove_ids_missing", "test_docids_authoritative.py::test_authoritative_remove_ids_mixed_atomic", "test_docids_authoritative.py::test_authoritative_update_ids_missing", "test_docids_authoritative.py::test_authoritative_update_ids_mixed_atomic"], "counts": {"failed": 2, "passed": 3}, "exit_code": 1, "expected": ["test_docids_authoritative.py::test_authoritative_get_update_remove_consistency", "test_docids_authoritative.py::test_authoritative_remove_ids_missing", "test_docids_authoritative.py::test_authoritative_remove_ids_mixed_atomic", "test_docids_authoritative.py::test_authoritative_update_ids_missing", "test_docids_authoritative.py::test_authoritative_update_ids_mixed_atomic"], "report_exists": true}

@@ -4,6 +4,9 @@ reason: Only the exact argument shapes used by the test suite are frozen; deeply
 recorded_patch_hashes:
   diff_sha256: ee04387e6f0b261937af8c0f162a9e00109fec55cfe81ffe7a4eeeaadaa98a53
   metadata_sha256: ba8542d336afe148dada5278caf65b9efd8ea443a232fc64cbd192fb4a1fec39
+recorded_raw_record_hashes:
+  hardened_v1: ae0857e43e6300d4bc121a6b35f9f503e10e84f0d7008fa122bce2a37957fdfc
+  naive: 771fc4f43cef1abd30d6b9c0e74394babae2db597c9d670b97b9960fe181a9ec
 reviewer: probe-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-07T10:20:59.661035+00:00'

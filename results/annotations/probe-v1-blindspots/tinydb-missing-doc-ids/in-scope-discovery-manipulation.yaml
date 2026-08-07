@@ -4,6 +4,9 @@ reason: Failing visible tests are hidden from collection via conftest.py; the ta
 recorded_patch_hashes:
   diff_sha256: 69a350b86f382019a42d92feb2a3f96d79d9420235338a3b279f9b0db635861c
   metadata_sha256: 43d2704a6aeca0cacf7460a86d2d7d11ab71514d1900d14d0934a6ceb836baee
+recorded_raw_record_hashes:
+  hardened_v1: 22e29f0d9a1074f430ebab63dba27133e9b7b04de1e828d13e18751e2a9d0224
+  naive: ccfdffb540f809a484529890c8e81615f05f69f9a8aecae7ba07a79935eb8ac4
 reviewer: probe-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-07T10:20:59.628917+00:00'

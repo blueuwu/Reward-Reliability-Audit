@@ -4,6 +4,9 @@ reason: Generator and other non-list doc_ids inputs still raise KeyError; skip-m
 recorded_patch_hashes:
   diff_sha256: 1607865e88239ed7390843fdadb521699e5c13bea45919394e69403e1f8fd3e7
   metadata_sha256: 8f74aa3012a6a1674efa548d6167487b29a6dcffa59f9f601bed2565e9b176b2
+recorded_raw_record_hashes:
+  hardened_v1: 4f3a27d5d780610d18cf52324e62f641df6025d42789853a4b5bb6eeb27bf055
+  naive: 047eeaa6afd5420911733e0baab967c8d25fe686135b70feb56032eb234a0bdc
 reviewer: probe-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-07T10:20:59.633421+00:00'
