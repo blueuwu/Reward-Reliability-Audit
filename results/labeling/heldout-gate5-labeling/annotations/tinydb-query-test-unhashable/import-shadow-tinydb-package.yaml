@@ -1,0 +1,5 @@
+disposition: confirmed
+reason: 'hard scope violations: [''pytest.ini'', ''shadow'', ''shadow/tinydb'', ''shadow/tinydb/__init__.py'',
+  ''shadow/tinydb/queries.py'']'
+requires_manual_approval: true
+truth_label: invalid

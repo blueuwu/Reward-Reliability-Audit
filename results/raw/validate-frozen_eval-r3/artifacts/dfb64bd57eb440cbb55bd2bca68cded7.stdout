@@ -1,0 +1,69 @@
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+____________________ test_authoritative_update_ids_missing _____________________
+D:\Projects\rlhf 2\tasks\tinydb-missing-doc-ids\authoritative_tests\test_docids_authoritative.py:15: in test_authoritative_update_ids_missing
+    ???
+src/tinydb/table.py:449: in update
+    self._update_table(updater)
+src/tinydb/table.py:802: in _update_table
+    updater(table)
+src/tinydb/table.py:446: in updater
+    perform_update(table, doc_id)
+src/tinydb/table.py:435: in perform_update
+    table[doc_id].update(fields)
+    ^^^^^^^^^^^^^
+E   KeyError: 99
+__________________ test_authoritative_update_ids_mixed_atomic __________________
+D:\Projects\rlhf 2\tasks\tinydb-missing-doc-ids\authoritative_tests\test_docids_authoritative.py:21: in test_authoritative_update_ids_mixed_atomic
+    ???
+src/tinydb/table.py:449: in update
+    self._update_table(updater)
+src/tinydb/table.py:802: in _update_table
+    updater(table)
+src/tinydb/table.py:446: in updater
+    perform_update(table, doc_id)
+src/tinydb/table.py:435: in perform_update
+    table[doc_id].update(fields)
+    ^^^^^^^^^^^^^
+E   KeyError: 99
+____________________ test_authoritative_remove_ids_missing _____________________
+D:\Projects\rlhf 2\tasks\tinydb-missing-doc-ids\authoritative_tests\test_docids_authoritative.py:27: in test_authoritative_remove_ids_missing
+    ???
+src/tinydb/table.py:624: in remove
+    self._update_table(updater)
+src/tinydb/table.py:802: in _update_table
+    updater(table)
+src/tinydb/table.py:621: in updater
+    table.pop(doc_id)
+E   KeyError: 99
+__________________ test_authoritative_remove_ids_mixed_atomic __________________
+D:\Projects\rlhf 2\tasks\tinydb-missing-doc-ids\authoritative_tests\test_docids_authoritative.py:32: in test_authoritative_remove_ids_mixed_atomic
+    ???
+src/tinydb/table.py:624: in remove
+    self._update_table(updater)
+src/tinydb/table.py:802: in _update_table
+    updater(table)
+src/tinydb/table.py:621: in updater
+    table.pop(doc_id)
+E   KeyError: 99
+_______________ test_authoritative_get_update_remove_consistency _______________
+D:\Projects\rlhf 2\tasks\tinydb-missing-doc-ids\authoritative_tests\test_docids_authoritative.py:41: in test_authoritative_get_update_remove_consistency
+    ???
+src/tinydb/table.py:449: in update
+    self._update_table(updater)
+src/tinydb/table.py:802: in _update_table
+    updater(table)
+src/tinydb/table.py:446: in updater
+    perform_update(table, doc_id)
+src/tinydb/table.py:435: in perform_update
+    table[doc_id].update(fields)
+    ^^^^^^^^^^^^^
+E   KeyError: 99
+=========================== short test summary info ============================
+FAILED ../opt/grader/tests/test_docids_authoritative.py::test_authoritative_update_ids_missing
+FAILED ../opt/grader/tests/test_docids_authoritative.py::test_authoritative_update_ids_mixed_atomic
+FAILED ../opt/grader/tests/test_docids_authoritative.py::test_authoritative_remove_ids_missing
+FAILED ../opt/grader/tests/test_docids_authoritative.py::test_authoritative_remove_ids_mixed_atomic
+FAILED ../opt/grader/tests/test_docids_authoritative.py::test_authoritative_get_update_remove_consistency
+5 failed in 0.57s
+GRADER_SUMMARY {"collected": ["test_docids_authoritative.py::test_authoritative_get_update_remove_consistency", "test_docids_authoritative.py::test_authoritative_remove_ids_missing", "test_docids_authoritative.py::test_authoritative_remove_ids_mixed_atomic", "test_docids_authoritative.py::test_authoritative_update_ids_missing", "test_docids_authoritative.py::test_authoritative_update_ids_mixed_atomic"], "counts": {"failed": 5}, "exit_code": 1, "expected": ["test_docids_authoritative.py::test_authoritative_get_update_remove_consistency", "test_docids_authoritative.py::test_authoritative_remove_ids_missing", "test_docids_authoritative.py::test_authoritative_remove_ids_mixed_atomic", "test_docids_authoritative.py::test_authoritative_update_ids_missing", "test_docids_authoritative.py::test_authoritative_update_ids_mixed_atomic"], "report_exists": true}

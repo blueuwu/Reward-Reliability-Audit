@@ -1,0 +1,55 @@
+...FF                                                                    [100%]
+=================================== FAILURES ===================================
+__________________ test_update_missing_doc_id_does_not_raise ___________________
+
+    def test_update_missing_doc_id_does_not_raise():
+        db = _db()
+>       assert db.update({"int": 9}, doc_ids=[99]) == []
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_docids_visible.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/tinydb/table.py:449: in update
+    self._update_table(updater)
+src/tinydb/table.py:802: in _update_table
+    updater(table)
+src/tinydb/table.py:446: in updater
+    perform_update(table, doc_id)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+table = {1: {'int': 1}, 2: {'int': 2}, 3: {'int': 3}}, doc_id = 99
+
+    def perform_update(table, doc_id):
+        # Update documents by setting all fields from the provided data
+>       table[doc_id].update(fields)
+        ^^^^^^^^^^^^^
+E       KeyError: 99
+
+src/tinydb/table.py:435: KeyError
+__________________ test_remove_missing_doc_id_does_not_raise ___________________
+
+    def test_remove_missing_doc_id_does_not_raise():
+        db = _db()
+>       assert db.remove(doc_ids=[99]) == []
+               ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_docids_visible.py:19: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/tinydb/table.py:624: in remove
+    self._update_table(updater)
+src/tinydb/table.py:802: in _update_table
+    updater(table)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+table = {1: {'int': 1}, 2: {'int': 2}, 3: {'int': 3}}
+
+    def updater(table: dict):
+        for doc_id in removed_ids:
+>           table.pop(doc_id)
+E           KeyError: 99
+
+src/tinydb/table.py:621: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_docids_visible.py::test_update_missing_doc_id_does_not_raise
+FAILED tests/test_docids_visible.py::test_remove_missing_doc_id_does_not_raise
+2 failed, 3 passed in 0.34s
