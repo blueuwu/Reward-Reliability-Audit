@@ -15,7 +15,6 @@ htmlcov/
 # Environments and secrets
 .env
 .env.*
-!.env.example
 
 # Local scratch
 *.log
@@ -24,3 +23,6 @@ htmlcov/
 # opencode tooling (untracked post-freeze; not part of the corpus or grader)
 .agents/
 skills-lock.json
+.github/
+Dockerfile.hud
+.env.example
