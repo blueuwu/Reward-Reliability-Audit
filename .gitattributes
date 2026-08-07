@@ -1,3 +1,22 @@
+# Line endings are part of this repository's content addressing.
+#
+# The task corpus, the freeze locks, and the per-task image locks all record
+# SHA-256 hashes of files as they exist in the working tree
+# (``vendored_tree_sha256``, ``freeze/grader_v1.lock.json`` protected_files,
+# ``tasks/*/image.lock.json``). A CRLF checkout on Windows and an LF checkout on
+# Linux therefore produce different hashes for byte-identical Git content, which
+# makes every recorded hash platform-dependent.
+#
+# Default: normalize text to LF in the index and check it out as LF everywhere.
+* text=auto eol=lf
+
+# Hashed payloads: never apply any end-of-line conversion in either direction.
+# The bytes stored in Git are exactly the bytes that get hashed and, for the
+# vendored baselines, exactly the bytes mounted into the scoring container.
+tasks/**            -text
+tests/fixtures/**   -text
+freeze/**           -text
+
 # Patch fixtures are immutable, hashed evidence. Do not flag whitespace that is
 # intentionally present in the payload under test.
-*.patch -whitespace
+*.patch -text -whitespace

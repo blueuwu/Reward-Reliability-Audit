@@ -8,7 +8,7 @@ source:
   license_file: baseline/LICENSE
   fix_commit: 76d21d26c682e1ca6ca25bd8e81edf9f609ac52f
   baseline_commit: 8a2dc204c265c07ce8506a3599a28e720b6dcdd7
-  vendored_tree_sha256: 5edc3893e077ccb3c3d8328cb95cf6b97b30f09c44f2133eeafcd13b72b0b75c
+  vendored_tree_sha256: 0648f059219f8eb52ae7235189d2b3f1c6e8ff131c0cde1949bbb85325a1cb17
 runtime:
   python: "3.12"
   requirements_lock: requirements.lock

@@ -1,15 +1,17 @@
 """Docker container execution for scored tasks (Sections 27.1 and 27.11).
 
 Every scored container uses ``--rm --network none``, drops all Linux
-capabilities, sets ``no-new-privileges``, runs as a non-root user, enforces the
-manifest memory and PID limits, receives only an explicit environment
-allowlist, and enforces a container-level timeout. Never execute a mutable tag:
-records reference the immutable digest.
+capabilities, sets ``no-new-privileges``, runs as a non-root user (the host UID
+where available, so the host-created bind mounts stay readable and writable),
+enforces the manifest memory and PID limits, receives only an explicit
+environment allowlist, and enforces a container-level timeout. Never execute a
+mutable tag: records reference the immutable digest.
 """
 
 from __future__ import annotations
 
 import contextlib
+import os
 import subprocess
 import time
 import uuid
@@ -22,6 +24,30 @@ _DOCKER_KILL_TIMEOUT = 15.0
 _GRACE_SECONDS = 10.0
 _CONTAINER_UID = 1000
 _CONTAINER_GID = 1000
+
+
+def _container_user() -> str:
+    """Return the ``--user`` value for a scored container.
+
+    The bind-mount sources are created on the host by ``tempfile.mkdtemp`` (mode
+    0700, owned by the invoking user), so the container process can only
+    traverse ``/workspace`` and write the evidence directory when it shares that
+    UID. A fixed UID silently breaks every scored run on any host whose user is
+    not UID 1000 -- notably GitHub-hosted runners, where ``runner`` is UID 1001:
+    pytest cannot reach the test directory and no ``report.json`` is produced.
+
+    Falls back to the fixed non-root UID where the host UID is unavailable
+    (Windows, whose Docker Desktop mounts do not carry host ownership) or where
+    the invoking user is root, so a scored container never runs as root.
+    """
+    getuid = getattr(os, "getuid", None)
+    getgid = getattr(os, "getgid", None)
+    if getuid is None or getgid is None:
+        return f"{_CONTAINER_UID}:{_CONTAINER_GID}"
+    uid, gid = getuid(), getgid()
+    if uid == 0:
+        return f"{_CONTAINER_UID}:{_CONTAINER_GID}"
+    return f"{uid}:{gid}"
 
 DEFAULT_ENV: dict[str, str] = {
     "PYTHONHASHSEED": "0",
@@ -75,7 +101,7 @@ class DockerRunner:
             "--security-opt",
             "no-new-privileges",
             "--user",
-            f"{_CONTAINER_UID}:{_CONTAINER_GID}",
+            _container_user(),
             "--stop-timeout",
             "5",
             "--name",
