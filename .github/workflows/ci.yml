@@ -73,7 +73,8 @@ jobs:
           #      AppArmor-*unconfined* processes;
           #   2. Docker's AppArmor and seccomp profiles, which restrict nested
           #      namespace setup -- both are lifted per-container by
-          #      start_deployment_container, without adding CAP_SYS_ADMIN.
+          #      start_deployment_container. SYS_ADMIN is granted to bwrap for
+          #      setup and dropped from the command running in its sandbox.
           # The sysctl alone is not sufficient: it governs the unconfined host
           # policy but does not override Docker's per-container profiles.
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
@@ -90,7 +91,7 @@ jobs:
           echo "== deployment image (also warms the build cache for pytest) =="
           IMAGE=$(uv run python -c "from pathlib import Path; from grader_v2.hud.runtime import resolve_deployment_image; print(resolve_deployment_image(Path('.'), build=True))" | tail -1)
           echo "image=$IMAGE"
-          BW="bwrap --die-with-parent --unshare-user-try --unshare-pid --unshare-ipc --unshare-uts --unshare-cgroup-try --bind / / -- true"
+          BW="bwrap --die-with-parent --unshare-user-try --unshare-pid --unshare-ipc --unshare-uts --unshare-cgroup-try --unshare-net --bind / / --cap-drop ALL -- true"
           probe() {
             docker run --rm $1 "$IMAGE" sh -c "$BW" >/dev/null 2>/tmp/bwrap-err
             rc=$?
@@ -101,6 +102,7 @@ jobs:
           probe "--security-opt apparmor=unconfined"
           probe "--security-opt seccomp=unconfined"
           probe "--security-opt apparmor=unconfined --security-opt seccomp=unconfined"
+          probe "--cap-add SYS_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined"
           exit 0
 
       - name: Doctor (strict Docker mode)

@@ -150,17 +150,19 @@ def start_deployment_container(
 ) -> DeploymentContainer:
     """Start the deployment container with a published control channel.
 
-    The two ``security-opt`` entries are required, not incidental: the HUD
-    workspace isolates every agent SSH session with bwrap, which creates nested
+    The security options and ``SYS_ADMIN`` capability are required, not
+    incidental. The HUD workspace isolates every agent SSH session with bwrap,
+    which creates nested
     user, PID, IPC, UTS, cgroup, and network namespaces. On GitHub's Ubuntu
     runners, both the ``docker-default`` AppArmor profile and Docker's default
     seccomp profile block parts of that namespace setup. If user-namespace
     creation fails, ``--unshare-user-try`` silently degrades and a later
     non-optional unshare exits with EPERM, so every agent command exits 1.
 
-    The container still receives no added capabilities (in particular, no
-    CAP_SYS_ADMIN), no host mounts, and no Docker socket. Bubblewrap remains the
-    agent filesystem/network isolation boundary.
+    ``SYS_ADMIN`` is available only to bubblewrap while it constructs that
+    boundary. The deployment workspace adds ``--cap-drop ALL`` before the agent
+    command, so the command itself has an empty effective capability set. The
+    container receives no host mounts or Docker socket.
     """
     port = host_port or _DEFAULT_HOST_PORT
     name = f"ga-hud-app-{uuid.uuid4().hex[:8]}"
@@ -177,6 +179,8 @@ def start_deployment_container(
             f"{memory_mb}m",
             "--pids-limit",
             str(pids_limit),
+            "--cap-add",
+            "SYS_ADMIN",
             "--security-opt",
             "apparmor=unconfined",
             "--security-opt",
@@ -218,7 +222,11 @@ class PatchApplyingStubAgent(Agent):
         run.trace.content = self.trace_content
         if not self.diff_text:
             return
-        shell = cast(SSHClient, await run.client.open("shell"))
+        try:
+            shell = cast(SSHClient, await run.client.open("shell"))
+        except Exception as exc:
+            run.trace.content = f"stub patch apply failed opening shell: {exc}"
+            return
         try:
             await shell.write_text("/stub-apply.patch", self.diff_text)
             result = await shell.conn.run("git apply --whitespace=nowarn stub-apply.patch")
@@ -228,6 +236,8 @@ class PatchApplyingStubAgent(Agent):
                 )
                 return
             await shell.conn.run("rm -f stub-apply.patch")
+        except Exception as exc:
+            run.trace.content = f"stub patch apply failed: {exc}"
         finally:
             with contextlib.suppress(Exception):
                 await shell.close()

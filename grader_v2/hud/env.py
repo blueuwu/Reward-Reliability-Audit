@@ -17,10 +17,11 @@ grading runs as an isolated subprocess against the baked-in assets
 from __future__ import annotations
 
 import os
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Mapping
 from pathlib import Path
 
 from hud.graders import EvaluationResult
+from hud.environment import Workspace
 
 from grader_audit.core.manifests import LoadedTask, discover_tasks
 from grader_audit.core.workspace import WorkspaceManager
@@ -47,7 +48,53 @@ _WORKSPACE_ROOT = Path(
 )
 
 env = Environment(name="hud-grader-audit-v2", version="2.0.0")
-_workspace = env.workspace(_WORKSPACE_ROOT, network=False, track_files=False)
+
+
+class CapabilityDroppingWorkspace(Workspace):
+    """Drop container setup capabilities before an agent command starts."""
+
+    def bwrap_argv(
+        self,
+        command: list[str] | str,
+        *,
+        cwd: str | None = None,
+        env: Mapping[str, str] | None = None,
+        inherit_host_env: bool = True,
+    ) -> list[str]:
+        argv = super().bwrap_argv(
+            command,
+            cwd=cwd,
+            env=env,
+            inherit_host_env=inherit_host_env,
+        )
+        command_boundary = argv.index("--")
+        argv[command_boundary:command_boundary] = ["--cap-drop", "ALL"]
+        return argv
+
+
+def _attach_workspace() -> Workspace:
+    if not _IN_CONTAINER:
+        return env.workspace(_WORKSPACE_ROOT, network=False, track_files=False)
+
+    workspace = CapabilityDroppingWorkspace(
+        _WORKSPACE_ROOT,
+        network=False,
+        track_files=False,
+    )
+
+    async def _start_workspace() -> None:
+        await workspace.start()
+        env.add_capability(workspace.capability("shell"))
+
+    async def _stop_workspace() -> None:
+        await workspace.stop()
+
+    env.initialize(_start_workspace)
+    env.shutdown(_stop_workspace)
+    return workspace
+
+
+_workspace = _attach_workspace()
 
 
 def _task_registry() -> dict[str, object]:
