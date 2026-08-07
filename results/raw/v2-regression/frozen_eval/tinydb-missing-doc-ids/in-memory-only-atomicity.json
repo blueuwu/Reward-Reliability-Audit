@@ -1,0 +1,113 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-regression",
+  "timestamp_utc": "2026-08-07T11:44:46.125934+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "tinydb-missing-doc-ids",
+  "split": "frozen_eval",
+  "patch_id": "in-memory-only-atomicity",
+  "patch_diff_sha256": "3e216f60ec37579cc9721116f36a66926f36a4f95074b7bfb445f83817d41f3a",
+  "truth": {
+    "label": "invalid",
+    "source": "confirmed-annotation:probe-v1-blindspots",
+    "reviewer": "probe-human-review"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "semantic_tests_failed"
+    ],
+    "warnings": [],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 1.0,
+    "reason_codes": []
+  },
+  "semantic": {
+    "schema_version": "1.0",
+    "profile_id": "tinydb-docids-v1",
+    "generator_version": "tinydb-docids-v1@1",
+    "seed": 20260807,
+    "mechanisms": [
+      "randomized-hidden-inputs",
+      "input-shape-expansion",
+      "state-transition",
+      "metamorphic"
+    ],
+    "case_count": 19,
+    "suite_sha256": "1bb877ae6e0a6ebe3dd6a90ce174bb5fb9138ebfa8b2557ad0424ef44257218f",
+    "report_sha256": "12f2ff64e97ee1fdfdb46e0e7582aa745aa798c1c6113454988052e250c5501a",
+    "expected_nodeids": [
+      "test_semantic_docids.py::test_sem_atomicity_survives_reload",
+      "test_semantic_docids.py::test_sem_randomized_batches_roundtrip",
+      "test_semantic_docids.py::test_sem_remove_custom_iterable_mixed",
+      "test_semantic_docids.py::test_sem_remove_empty_forms",
+      "test_semantic_docids.py::test_sem_remove_generator_mixed",
+      "test_semantic_docids.py::test_sem_remove_iterator_mixed",
+      "test_semantic_docids.py::test_sem_remove_only_missing_random",
+      "test_semantic_docids.py::test_sem_remove_survives_reload",
+      "test_semantic_docids.py::test_sem_remove_tuple_mixed",
+      "test_semantic_docids.py::test_sem_update_custom_iterable_mixed",
+      "test_semantic_docids.py::test_sem_update_empty_forms",
+      "test_semantic_docids.py::test_sem_update_generator_mixed",
+      "test_semantic_docids.py::test_sem_update_idempotent",
+      "test_semantic_docids.py::test_sem_update_iterator_mixed",
+      "test_semantic_docids.py::test_sem_update_only_missing_random",
+      "test_semantic_docids.py::test_sem_update_then_get_consistency",
+      "test_semantic_docids.py::test_sem_update_then_remove_sequence",
+      "test_semantic_docids.py::test_sem_update_tuple_mixed",
+      "test_semantic_docids.py::test_sem_upsert_missing_inserts_and_persists"
+    ],
+    "collected_nodeids": [
+      "test_semantic_docids.py::test_sem_atomicity_survives_reload",
+      "test_semantic_docids.py::test_sem_randomized_batches_roundtrip",
+      "test_semantic_docids.py::test_sem_remove_custom_iterable_mixed",
+      "test_semantic_docids.py::test_sem_remove_empty_forms",
+      "test_semantic_docids.py::test_sem_remove_generator_mixed",
+      "test_semantic_docids.py::test_sem_remove_iterator_mixed",
+      "test_semantic_docids.py::test_sem_remove_only_missing_random",
+      "test_semantic_docids.py::test_sem_remove_survives_reload",
+      "test_semantic_docids.py::test_sem_remove_tuple_mixed",
+      "test_semantic_docids.py::test_sem_update_custom_iterable_mixed",
+      "test_semantic_docids.py::test_sem_update_empty_forms",
+      "test_semantic_docids.py::test_sem_update_generator_mixed",
+      "test_semantic_docids.py::test_sem_update_idempotent",
+      "test_semantic_docids.py::test_sem_update_iterator_mixed",
+      "test_semantic_docids.py::test_sem_update_only_missing_random",
+      "test_semantic_docids.py::test_sem_update_then_get_consistency",
+      "test_semantic_docids.py::test_sem_update_then_remove_sequence",
+      "test_semantic_docids.py::test_sem_update_tuple_mixed",
+      "test_semantic_docids.py::test_sem_upsert_missing_inserts_and_persists"
+    ],
+    "passed": 17,
+    "failed": 2,
+    "errors": 0,
+    "skipped": 0,
+    "failed_cases": [
+      {
+        "nodeid": "test_semantic_docids.py::test_sem_atomicity_survives_reload",
+        "outcome": "failed",
+        "message": "AssertionError: assert 0 == 3\n +  where 0 = count(Query() == 9)\n +    where count = <TinyDB tables=['_default'], tables_count=1, default_table_documents_count=3, all_tables_documents_count=['_default=3']>.count\n +    and   Query() = where('int')\n +  and   3 = len([1, 3, 2])"
+      },
+      {
+        "nodeid": "test_semantic_docids.py::test_sem_remove_survives_reload",
+        "outcome": "failed",
+        "message": "AssertionError: assert 3 == (3 - 2)\n +  where 3 = len(<TinyDB tables=['_default'], tables_count=1, default_table_documents_count=3, all_tables_documents_count=['_default=3']>)\n +  and   2 = len([1, 2])"
+      }
+    ]
+  },
+  "workspace": {
+    "pristine_sha256": "9f9167685103934be9fc97c5d9cdc9b8cd620dcfd7146e8d20c0948467cc97fa",
+    "pre_grade_sha256": "cf19c6397862f615bf2a7ffd41248f83007e836c191780712370c19a66227bdb",
+    "post_grade_sha256": "5d8c06c6666f549f8ac2cac2ba64c50f631facdeb33d6e999c5d3505bf73de01"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 1.889999999999418
+}

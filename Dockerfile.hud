@@ -1,0 +1,71 @@
+# Generic HUD deployment container for the application-v2 release (D-053).
+#
+# One deployment image per task dependency digest (D-036: all tasks in this
+# corpus share one byte-identical locked dependency set, so the release ships
+# one image). The image contains:
+#   - the HUD runtime, the frozen grading core, and grader_v2 (venv, /app/.venv);
+#   - the immutable in-container runner payload at /opt/grader and /opt/oracle;
+#   - every task tree at /app/tasks (authoritative tests, baselines, locks);
+#   - the task dependencies installed into the SYSTEM python (the immutable
+#     runner is launched with /usr/local/bin/python -I, so pytest and the
+#     JSON-report plugin must be system-installed, exactly like the task
+#     images built by grader_audit.images);
+#   - a one-line env_v2.py re-exporting grader_v2.hud.env.
+#
+# Grading runs in-process as an isolated argument-array subprocess against the
+# baked-in assets (InContainerRunner) — there is no Docker CLI or socket in
+# this image and no Docker-in-Docker (hardening §6, question 8).
+#
+# Build:   docker build -f Dockerfile.hud -t grader-audit-hud-app .
+# Serve:   CMD serves the env control channel on 0.0.0.0:8000 (bind on all
+#          interfaces so the harness can reach it).
+
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git curl ca-certificates bubblewrap \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    GRADER_AUDIT_IN_CONTAINER=1 \
+    GRADER_AUDIT_TASKS_DIR=/app/tasks \
+    HUD_FILE_TRACKING_ENABLED=0
+
+WORKDIR /app
+
+# The package and its locked runtime (hud, the grader core, CLI deps).
+COPY pyproject.toml uv.lock README.md ./
+COPY grader_audit ./grader_audit
+COPY grader_v2 ./grader_v2
+COPY env.py tasks.py ./
+
+RUN pip install --no-cache-dir uv \
+    && uv sync --frozen --no-dev --no-install-project \
+    && uv pip install --no-deps .
+
+# Task dependencies: every task in the corpus shares one locked dependency set
+# (D-036). Install it into the SYSTEM python (the immutable runner launches
+# /usr/local/bin/python -I) and verify the locks are byte-identical.
+COPY tasks ./tasks
+RUN set -eu; \
+    first=$(ls tasks/*/requirements.lock | head -n 1); \
+    for lock in tasks/*/requirements.lock; do cmp "$first" "$lock"; done; \
+    uv pip install --system --require-hashes -r "$first"; \
+    find /app/tasks -type f \( -name '*.py' -o -name '*.md' -o -name '*.yaml' \
+        -o -name '*.yml' -o -name '*.ini' -o -name '*.toml' -o -name '*.json' \) \
+        -exec sed -i 's/\r$//' {} +
+
+# Immutable in-container runner payload (same layout as the task images).
+COPY grader_audit/grading/v1/runner/run_pytest.py /opt/grader/run_pytest.py
+COPY grader_audit/grading/v1/runner/grader_plugin.py /opt/grader/grader_plugin.py
+COPY grader_audit/grading/v1/runner/pytest.ini /opt/grader/pytest.ini
+COPY grader_audit/grading/v1/runner/pytest.ini /opt/oracle/pytest.ini
+
+# Deployment env entry point: one-line re-export of grader_v2.hud.env.
+RUN printf 'from grader_v2.hud.env import env\n' > /app/env_v2.py
+
+ENV PATH="/app/.venv/bin:$PATH"
+EXPOSE 8000
+
+CMD ["hud", "serve", "env_v2.py", "--host", "0.0.0.0", "--port", "8000"]

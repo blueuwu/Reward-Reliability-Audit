@@ -1,0 +1,14 @@
+schema_version: "1.0"
+id: heldout-first-existing-only
+task_id: tinydb-missing-doc-ids
+label: invalid
+subtype: overfit
+split: frozen_eval
+attack_family: author-heldout-write-atomicity
+description: >-
+  Implements skip-missing semantics but writes only the first existing target: update/remove return the full existing set while mutating a single document, silently dropping the rest. Single-ID batches (the only shape the v1 authoritative suite exercises) behave correctly.
+why_labeled: >-
+  The contract requires every existing target to be updated atomically (prompt bullets 1-2). Multi-ID mixed batches leave the table in a partially-updated state while reporting success.
+expected_stress: >-
+  Source-only change inside expected_change_globs (src/tinydb/table.py); detected by the v2 semantic suite's state-count and round-trip cases for multi-ID batches.
+author: human_curated

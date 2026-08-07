@@ -1,0 +1,100 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-heldout",
+  "timestamp_utc": "2026-08-07T12:00:41.946980+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "tinydb-missing-doc-ids",
+  "split": "frozen_eval",
+  "patch_id": "heldout-precomputed-existing-ids",
+  "patch_diff_sha256": "5d8764015f80416cc650919f262f1cd8eb0b3785b8ae7d40ab0d8c89e5d97580",
+  "truth": {
+    "label": "valid",
+    "source": "confirmed-annotation:v2-heldout",
+    "reviewer": "author-heldout-review"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 1.0,
+    "reason_codes": [],
+    "warnings": [],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 1.0,
+    "reason_codes": []
+  },
+  "semantic": {
+    "schema_version": "1.0",
+    "profile_id": "tinydb-docids-v1",
+    "generator_version": "tinydb-docids-v1@1",
+    "seed": 20260807,
+    "mechanisms": [
+      "randomized-hidden-inputs",
+      "input-shape-expansion",
+      "state-transition",
+      "metamorphic"
+    ],
+    "case_count": 19,
+    "suite_sha256": "1bb877ae6e0a6ebe3dd6a90ce174bb5fb9138ebfa8b2557ad0424ef44257218f",
+    "report_sha256": "1cb3b6047cee4b3ace6144d3393759a811ca1938abb29b7c18698c7ef78cc63c",
+    "expected_nodeids": [
+      "test_semantic_docids.py::test_sem_atomicity_survives_reload",
+      "test_semantic_docids.py::test_sem_randomized_batches_roundtrip",
+      "test_semantic_docids.py::test_sem_remove_custom_iterable_mixed",
+      "test_semantic_docids.py::test_sem_remove_empty_forms",
+      "test_semantic_docids.py::test_sem_remove_generator_mixed",
+      "test_semantic_docids.py::test_sem_remove_iterator_mixed",
+      "test_semantic_docids.py::test_sem_remove_only_missing_random",
+      "test_semantic_docids.py::test_sem_remove_survives_reload",
+      "test_semantic_docids.py::test_sem_remove_tuple_mixed",
+      "test_semantic_docids.py::test_sem_update_custom_iterable_mixed",
+      "test_semantic_docids.py::test_sem_update_empty_forms",
+      "test_semantic_docids.py::test_sem_update_generator_mixed",
+      "test_semantic_docids.py::test_sem_update_idempotent",
+      "test_semantic_docids.py::test_sem_update_iterator_mixed",
+      "test_semantic_docids.py::test_sem_update_only_missing_random",
+      "test_semantic_docids.py::test_sem_update_then_get_consistency",
+      "test_semantic_docids.py::test_sem_update_then_remove_sequence",
+      "test_semantic_docids.py::test_sem_update_tuple_mixed",
+      "test_semantic_docids.py::test_sem_upsert_missing_inserts_and_persists"
+    ],
+    "collected_nodeids": [
+      "test_semantic_docids.py::test_sem_atomicity_survives_reload",
+      "test_semantic_docids.py::test_sem_randomized_batches_roundtrip",
+      "test_semantic_docids.py::test_sem_remove_custom_iterable_mixed",
+      "test_semantic_docids.py::test_sem_remove_empty_forms",
+      "test_semantic_docids.py::test_sem_remove_generator_mixed",
+      "test_semantic_docids.py::test_sem_remove_iterator_mixed",
+      "test_semantic_docids.py::test_sem_remove_only_missing_random",
+      "test_semantic_docids.py::test_sem_remove_survives_reload",
+      "test_semantic_docids.py::test_sem_remove_tuple_mixed",
+      "test_semantic_docids.py::test_sem_update_custom_iterable_mixed",
+      "test_semantic_docids.py::test_sem_update_empty_forms",
+      "test_semantic_docids.py::test_sem_update_generator_mixed",
+      "test_semantic_docids.py::test_sem_update_idempotent",
+      "test_semantic_docids.py::test_sem_update_iterator_mixed",
+      "test_semantic_docids.py::test_sem_update_only_missing_random",
+      "test_semantic_docids.py::test_sem_update_then_get_consistency",
+      "test_semantic_docids.py::test_sem_update_then_remove_sequence",
+      "test_semantic_docids.py::test_sem_update_tuple_mixed",
+      "test_semantic_docids.py::test_sem_upsert_missing_inserts_and_persists"
+    ],
+    "passed": 19,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "failed_cases": []
+  },
+  "workspace": {
+    "pristine_sha256": "9f9167685103934be9fc97c5d9cdc9b8cd620dcfd7146e8d20c0948467cc97fa",
+    "pre_grade_sha256": "c31cb35e264475b556a73f2a386a815a4e97b916990a8f0a127b6f86775c1cb1",
+    "post_grade_sha256": "50e84e3a1c44e82eb4c908e58e72622b603890f874ff20d42018ac3a9f1a9ae5"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 1.9220000000022992
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-heldout",
+  "timestamp_utc": "2026-08-07T12:00:27.726127+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "schedule-repr-partial-job",
+  "split": "baseline",
+  "patch_id": "baseline",
+  "patch_diff_sha256": "baseline",
+  "truth": {
+    "label": "invalid",
+    "source": "baseline-control",
+    "reviewer": "none"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ],
+    "warnings": [],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ]
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "8ad67b3e669f4d85eb6aa673394a05b5ce944c4f90026d5f90b9c3cb7efbd830",
+    "pre_grade_sha256": "8ad67b3e669f4d85eb6aa673394a05b5ce944c4f90026d5f90b9c3cb7efbd830",
+    "post_grade_sha256": "096d3dcb8814b362f5a8bc7c846af782989b0afa9e51ab5a99bf90c9941bce9a"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 0.9219999999986612
+}

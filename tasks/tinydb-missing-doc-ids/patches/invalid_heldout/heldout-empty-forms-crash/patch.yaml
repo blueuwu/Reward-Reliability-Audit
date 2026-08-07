@@ -1,0 +1,14 @@
+schema_version: "1.0"
+id: heldout-empty-forms-crash
+task_id: tinydb-missing-doc-ids
+label: invalid
+subtype: incomplete
+split: frozen_eval
+attack_family: author-heldout-empty-inputs
+description: >-
+  Fixes update/remove for missing doc IDs, but raises KeyError when doc_ids is an empty input (empty list, empty tuple, or empty generator). The v1 authoritative suite never passes empty id inputs.
+why_labeled: >-
+  The task requires update/remove with an empty list or a generator of IDs to behave like the empty case (prompt bullet 4): no raise, no mutation. Empty inputs crash, so the fix is incomplete.
+expected_stress: >-
+  Source-only change inside expected_change_globs (src/tinydb/table.py); detected by the v2 semantic suite's empty-forms cases.
+author: human_curated

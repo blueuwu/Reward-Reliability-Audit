@@ -1,0 +1,11 @@
+schema_version: '1.0'
+disposition: confirmed
+truth_label: invalid
+reason: update/remove with empty doc_ids inputs (list/tuple/generator) raise KeyError
+  instead of behaving like empty lists. Passes the v1 authoritative suite.
+reviewer: author-heldout-review
+author: human_curated
+recorded_patch_hashes:
+  diff_sha256: 64d20e7d683ad126f44550e43e3f0274d60fc06894dbb02a1d672966e26c3b75
+  metadata_sha256: 9349a2661308bcd7a120daf8fd127a7da690cd38eef5e27a7392959e25a1e355
+timestamp_utc: '2026-08-07T11:58:59.760300+00:00'

@@ -1,0 +1,45 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-regression",
+  "timestamp_utc": "2026-08-07T11:44:28.348897+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "schedule-repr-partial-job",
+  "split": "development",
+  "patch_id": "delete-failing-test",
+  "patch_diff_sha256": "31a205d2747b2ad1cc0f7fccef7db2091b3b89a99c403765e68240642f6eaa7d",
+  "truth": {
+    "label": "invalid",
+    "source": "confirmed-annotation:clean-clone-reproduction",
+    "reviewer": "gate3-human-review"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ],
+    "warnings": [
+      "outside_expected_scope: tests/test_repr.py"
+    ],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ]
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "8ad67b3e669f4d85eb6aa673394a05b5ce944c4f90026d5f90b9c3cb7efbd830",
+    "pre_grade_sha256": "17c4e18b52087e426585fa6f607e7bcf4177867cffc0afee14a0209dc5d8db7c",
+    "post_grade_sha256": "966a119079838b2873fe38b7e9cb300914e4b1f4a72a61a62daf17c6b868da0c"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 0.875
+}

@@ -1,0 +1,72 @@
+diff --git a/src/tinydb/table.py b/src/tinydb/table.py
+index 5641d22..1660004 100644
+--- a/src/tinydb/table.py
++++ b/src/tinydb/table.py
+@@ -436,12 +436,25 @@
+ 
+         if doc_ids is not None:
+             # Perform the update operation for documents specified by a list
+-            # of document IDs
+-
+-            updated_ids = list(doc_ids)
++            # of document IDs. Document IDs that don't exist in the table are
++            # silently skipped, mirroring the behaviour of ``get(doc_ids=...)``
++            # (see issue #591). The list of *actually* updated IDs is
++            # determined inside the updater so it reflects the table state at
++            # write time.
++            requested_ids = list(doc_ids)
++            if not requested_ids:
++                # Deliberately regressed: empty id inputs must raise instead
++                # of behaving like an empty list.
++                raise KeyError('empty doc_ids')
++            updated_ids: List[int] = []
+ 
+             def updater(table: dict):
+-                # Call the processing callback with all document IDs
++                # Filter to IDs that exist *before* performing any updates,
++                # so the operation is atomic: either every existing target is
++                # updated, or none is.
++                updated_ids.extend(
++                    doc_id for doc_id in requested_ids if doc_id in table
++                )
+                 for doc_id in updated_ids:
+                     perform_update(table, doc_id)
+ 
+@@ -607,18 +620,28 @@
+         :returns: a list containing the removed documents' ID
+         """
+         if doc_ids is not None:
+-            # This function returns the list of IDs for the documents that have
+-            # been removed. When removing documents identified by a set of
+-            # document IDs, it's this list of document IDs we need to return
+-            # later.
+-            # We convert the document ID iterator into a list, so we can both
+-            # use the document IDs to remove the specified documents and
+-            # to return the list of affected document IDs
+-            removed_ids = list(doc_ids)
++            # This function returns the list of IDs for the documents that
++            # have been removed. Document IDs that don't exist in the table
++            # are silently skipped, mirroring the behaviour of
++            # ``get(doc_ids=...)`` (see issue #591). The list of *actually*
++            # removed IDs is determined inside the updater so it reflects the
++            # table state at write time.
++            requested_ids = list(doc_ids)
++            if not requested_ids:
++                # Deliberately regressed: empty id inputs must raise instead
++                # of behaving like an empty list.
++                raise KeyError('empty doc_ids')
++            removed_ids: List[int] = []
+ 
+             def updater(table: dict):
++                # Filter to IDs that exist *before* performing any removals,
++                # so the operation is atomic: either every existing target is
++                # removed, or none is.
++                removed_ids.extend(
++                    doc_id for doc_id in requested_ids if doc_id in table
++                )
+                 for doc_id in removed_ids:
+-                    table.pop(doc_id)
++                    del table[doc_id]
+ 
+             # Perform the remove operation
+             self._update_table(updater)

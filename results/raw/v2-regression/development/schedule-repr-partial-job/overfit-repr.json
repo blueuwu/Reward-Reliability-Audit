@@ -1,0 +1,43 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-regression",
+  "timestamp_utc": "2026-08-07T11:44:31.359278+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "schedule-repr-partial-job",
+  "split": "development",
+  "patch_id": "overfit-repr",
+  "patch_diff_sha256": "a68371687a124826ab05853921f500867986026c294bf61c84c0c2453273adf7",
+  "truth": {
+    "label": "invalid",
+    "source": "confirmed-annotation:clean-clone-reproduction",
+    "reviewer": "gate3-human-review"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ],
+    "warnings": [],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ]
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "8ad67b3e669f4d85eb6aa673394a05b5ce944c4f90026d5f90b9c3cb7efbd830",
+    "pre_grade_sha256": "9707efb92438c1f2b8f511795d3277a672cfdb69ecd48894cf062228e5844ad0",
+    "post_grade_sha256": "4e189f1726bba7a66945a10e9e861480337cdc6f9ed5bb2a2dbcd0d890012353"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 0.875
+}

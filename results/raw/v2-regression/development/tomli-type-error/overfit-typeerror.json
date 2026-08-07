@@ -1,0 +1,43 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-regression",
+  "timestamp_utc": "2026-08-07T11:45:24.319538+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "tomli-type-error",
+  "split": "development",
+  "patch_id": "overfit-typeerror",
+  "patch_diff_sha256": "7f9c01927502166c1f27019a98165e01657c668a5944ccc13ae9f89fff13e191",
+  "truth": {
+    "label": "invalid",
+    "source": "confirmed-annotation:clean-clone-reproduction",
+    "reviewer": "gate3-human-review"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ],
+    "warnings": [],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ]
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "270bd868906e55b376737aa5f4a4118fd2fbc493a94ddc2e9b3f511dc825502a",
+    "pre_grade_sha256": "825826b4dc18fb9f69f8b24052094401a1d4635265ec248391cb42d19b4d93d8",
+    "post_grade_sha256": "fc1b2f4a2fb56f0b98c771c6a53531bf39d4787c7b58318eef5b794177427ec4"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 0.9220000000022992
+}

@@ -1,7 +1,7 @@
 [project]
 name = "grader-audit"
-version = "0.1.0"
-description = "Grader reliability audit for HUD coding environments (Gate 0 bootstrap)."
+version = "2.0.0"
+description = "Grader reliability audit for HUD coding environments; application-v2 release (Track B, D-053)."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -17,6 +17,7 @@ dependencies = [
 
 [project.scripts]
 grader-audit = "grader_audit.cli:app"
+grader-v2 = "grader_v2.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -30,33 +31,37 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["grader_audit"]
+packages = ["grader_audit", "grader_v2"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-src = ["grader_audit", "tests"]
+src = ["grader_audit", "grader_v2", "tests"]
 extend-exclude = ["tests/fixtures", "tasks"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "C4", "RUF"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["grader_audit"]
+known-first-party = ["grader_audit", "grader_v2"]
 
 [tool.ruff.lint.flake8-bugbear]
 extend-immutable-calls = ["pydantic.Field", "typer.Argument", "typer.Option"]
 
 [tool.ruff.lint.per-file-ignores]
 "grader_audit/grading/v1/runner/*.py" = ["E501"]
+# D-058: protected frozen files carry latent isort drift that only became
+# visible when grader_v2 joined the first-party set; they cannot be edited.
+"env.py" = ["I001"]
+"tests/integration/test_hud_parity.py" = ["I001"]
 
 [tool.pyright]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
-include = ["grader_audit", "tests"]
+include = ["grader_audit", "grader_v2", "tests"]
 exclude = ["grader_audit/grading/v1/runner", "tests/fixtures", "tasks"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "grader_v2/tests"]
 addopts = "-ra"
 norecursedirs = ["fixtures"]

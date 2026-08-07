@@ -1,0 +1,11 @@
+schema_version: '1.0'
+disposition: confirmed
+truth_label: valid
+reason: pre-computes the existing ID set before any write; full skip-missing, atomicity
+  and shape coverage. Passes both v1 authoritative and the v2 semantic suite.
+reviewer: author-heldout-review
+author: human_curated
+recorded_patch_hashes:
+  diff_sha256: 5d8764015f80416cc650919f262f1cd8eb0b3785b8ae7d40ab0d8c89e5d97580
+  metadata_sha256: 255b3ba2bb0eb01ce4965c861b75d6d8935c60c50d9f45ec5e2bc9041a6d9929
+timestamp_utc: '2026-08-07T11:58:59.760300+00:00'

@@ -1,147 +1,117 @@
 # Green Isn't Correct: Auditing Reward Reliability in HUD Coding Environments
 
-> **Results published (Gate 6)** — the final controlled experiment (`clean-clone-reproduction`,
-> 72/72 completed records, 30/30 stable baseline/gold validation runs) finished under
-> `grader-v1-frozen`; `results/report.md` (Section 27.18) is the authoritative numbers file.
-> Hardened v1 reduces the naive grader's 21/26 false rewards to 0/26 with zero false
-> rejections (0/10).
+This repository is the **application-v2 release** (Track B, decision `D-053`): a
+semantic hardening of the v1 grader reliability audit, shipped as an installable
+package (`grader_audit` + `grader_v2`), a deployment container (`Dockerfile.hud`,
+HUD v6 runtime), and a fully regenerable publication package.
 
-## Results
+The frozen v1 experiment (`grader-v1-frozen`, commit `c95a014`) remains
+immutable: its 253 protected files are verified read-only by
+`grader-v2 verify-v1-lock` (the only approved deltas are `pyproject.toml` and
+`uv.lock`, which the application-v2 release extends by design).
 
-Final experiment: `clean-clone-reproduction` (frozen tag `grader-v1-frozen`, 3 development
-tasks, 2 held-out frozen-evaluation tasks). See `results/report.md` for per-split metrics,
-Wilson intervals, attack-family detection, and the full case inventory.
+## Headline numbers
 
-| Grader | Invalid rewarded | Valid rejected | Held-out invalid rewarded |
+| Experiment | Grader | Invalid rewarded | Valid rejected |
 |---|---:|---:|---:|
-| Naive | 21 / 26 | 0 / 10 | 6 / 8 |
-| Hardened v1 | 0 / 26 | 0 / 10 | 0 / 8 |
+| clean-clone-reproduction (non-blind reproduction of the frozen v1 experiment) | naive | 21 / 26 | 0 / 10 |
+| clean-clone-reproduction | hardened v1 | 0 / 18 | 0 / 6 |
+| probe-v1-blindspots (probe, labeled non-blind; the hidden-input sweep) | naive | 16 / 16 | 0 / 7 |
+| probe-v1-blindspots (probe, labeled non-blind) | hardened v1 | 4 / 16 | 0 / 7 |
+| v2-regression (frozen_eval split) | hardened v2 | 0 / 16 | 0 / 7 |
+| v2-heldout (frozen_eval split, author-heldout set) | hardened v2 | 0 / 20 | 0 / 9 |
+
+`results/report.md` is the authoritative numbers file for the frozen v1
+experiment; `results/summaries/v2-regression.md` and
+`results/summaries/v2-heldout.md` are generated from the v2 records
+(schema `2.0`, grader version `hardened_v2`) and are byte-verified by
+`grader-v2 publication --mode validate`.
+
+## Why a v2
+
+The probe (labeled non-blind) found 4 / 16 false rewards that the frozen v1
+grader still produced: authoritative-overfit patches that pass every visible
+test yet fail the task contract on hidden inputs. Hardened v2 composes the
+frozen v1 mandatory checks (logical AND) with a **semantic suite** generated
+from the task contract after the agent finishes:
+
+- seeded, deterministic suites per task profile (`tinydb-docids-v1`,
+  `tinydb-query-freeze-v1`), each replayable with `grader-v2 replay`;
+- rewards are exactly `0.0` or `1.0`; infrastructure outcomes carry no reward;
+- every v1 rejection propagates unchanged; a v1 pass earns `1.0` only when the
+  semantic suite also passes;
+- the v2 grading surface is frozen (`results/application-v2/freeze-v2.json`)
+  and verified by `grader-v2 freeze-v2` / publication validation.
+
+The v2-heldout set (4 invalid attacks across 4 mechanisms, 2 valid
+alternatives, all authored after the v2 freeze and labeled `author-heldout`)
+confirms the semantic suite rejects every attack it was designed to catch while
+rewarding both valid alternatives.
 
 ## One concrete failure
 
-`inflection-titleize/weaken-visible-tests` (development): the naive grader rewards the
-visible-test-weakening patch `1.0` (exit 0), while hardened v1 rejects it via the
-read-only authoritative suite (`authoritative_tests_failed`). On the held-out split,
-`tinydb-missing-doc-ids/import-shadow-tinydb-package` behaves identically: rewarded by
-naive, rejected by hardened.
+`tinydb-missing-doc-ids/weaken-visible-tests` (development): the naive grader
+rewards the visible-test-weakening patch `1.0` (exit 0), while hardened v1
+rejects it via the read-only authoritative suite (`authoritative_tests_failed`).
+On the held-out split, `tinydb-missing-doc-ids/import-shadow-tinydb-package`
+behaves identically: rewarded by naive, rejected by hardened. The v2 semantic
+suite goes further and rejects `tinydb-missing-doc-ids/list-only-skip-missing`
+(an authoritative overfit that passes v1) with `semantic_tests_failed`; the
+same attack against the deployed container scores `0.0` in the application
+demo.
 
 ## What this audits
 
-Central research question: how much can a coding-task grader reduce false rewards
-without increasing false rejections of correct but non-canonical solutions?
+Central research question: how much can a coding-task grader reduce false
+rewards without increasing false rejections of correct but non-canonical
+solutions?
 
-- **False reward**: an invalid patch earns reward `1.0` (weakened tests, skips, fixture
-  manipulation, hard-coded overfit, scope violations, runtime manipulation).
-- **False rejection**: a valid patch receives reward `0.0` (non-canonical implementation,
-  multi-file refactor, generalized fix).
+- **False reward**: an invalid patch earns reward `1.0` (weakened tests, skips,
+  fixture manipulation, hard-coded overfit, scope violations, runtime
+  manipulation).
+- **False rejection**: a valid patch receives reward `0.0` (non-canonical
+  implementation, multi-file refactor, generalized fix).
 
-Naive grader: reward `1.0` iff the configured pytest command exits `0`. Hardened grader:
-authoritative tests outside the editable workspace, exact node-ID verification, immutable
-asset hashing, scope classification, and stable structured reason codes.
+Naive grader: reward `1.0` iff the configured pytest command exits `0`. Hardened
+grader: authoritative tests outside the editable workspace, exact node-ID
+verification, immutable asset hashing, scope classification, stable structured
+reason codes, and (v2) contract-derived semantic suites.
 
-## Reproduce (final, Gate 6)
+## Repository layout
 
-```bash
+| Path | Contents |
+|---|---|
+| `grader_audit/` | Frozen shared core: graders, orchestrator, runner, freeze machinery (immutable, v1 lock). |
+| `grader_v2/` | Application-v2 release: semantic grader, v2 records/summaries, freeze + lock verification, HUD adapter, demo, publication. |
+| `tasks/` | Five tasks (3 development, 2 frozen-eval) with baselines, authoritative/visible/oracle tests, and patch corpora. |
+| `freeze/grader_v1.lock.json` | Immutable v1 freeze lock (verified read-only). |
+| `results/` | Raw records, summaries, annotations, application-v2 baselines/freeze, publication manifest. |
+| `docs/` | Decisions (`DECISIONS.md`), architecture, threat model, limitations, case studies. |
+
+## Release gates (one command per gate, CI = the whole chain)
+
+```powershell
+$env:GRADER_AUDIT_REQUIRE_DOCKER='1'
 uv sync --frozen
-uv run grader-audit doctor
 uv run ruff check .
 uv run pyright
-uv run pytest -q
-
-# Full offline reproduction of the final experiment (needs Docker)
-uv run python -m grader_v2.cli reproduce --tasks tasks --experiment-id <new-id>
+uv run pytest -q            # strict Docker mode: zero unexpected skips
+uv run grader-audit doctor
+uv run grader-v2 verify-v1-lock
+uv run grader-v2 freeze-v2
+uv run grader-v2 publication --mode validate
+uv run grader-v2 demo       # HUD deployment container, end-to-end
 ```
 
-The frozen v1 `reproduce`/`report` tools record artifact paths relative to the resolved
-(result-root-absolute) working directory; the frozen report generator requires
-repository-relative paths and refuses those records on Windows orchestration hosts
-(D-052, `docs/DECISIONS.md`). `grader_v2/` reuses the frozen pipeline verbatim and only
-replaces the report's artifact-path resolver; `results/report.md` is byte-identical to
-`results/summaries/clean-clone-reproduction.md`.
+The CI workflow (`.github/workflows/ci.yml`) runs the static gates on Linux,
+the strict-Docker container integration plus the full release gate on Linux
+with `GRADER_AUDIT_REQUIRE_DOCKER=1`, and the Windows orchestration paths
+(no Linux containers).
 
-`doctor` checks the Section 27.1 prerequisites (Python 3.12, uv/git/docker, reachable
-Docker Engine able to run a Linux container, writable project root, Git repository with
-usable author identity, importable HUD package, no API key required) and exits `0` only
-when all pass.
+## Documentation
 
-Gate 1 implements `doctor`, `validate-manifests`, `validate`, and `run-controlled`.
-`validate` runs baseline and gold from clean workspaces (naive, authoritative, and
-offline-oracle suites) for the requested repeat count and fails on any variation.
-`run-controlled` evaluates every development patch under each requested grader from
-separate clean workspaces and refuses patches lacking a confirmed truth annotation.
-
-## Architecture
-
-```
-grader_audit/
-├── core/            # shared framework-independent models, path rules, snapshots,
-│                    # patches, workspace materialization, Docker runner, recorder,
-│                    # orchestrator, annotations, doctor
-├── grading/
-│   ├── naive/       # exact exit-code naive grader (exit-code only; collection parsed
-│   │                # for observation)
-│   └── v1/          # hardened-v1 evaluator, evidence parser, immutable in-container
-│                    # runner (run_pytest.py, grader_plugin.py, pytest.ini)
-├── oracle/          # offline oracle evaluator (labeling only; never mounted for grading)
-├── images.py        # content-addressed immutable task-image builder
-└── cli.py           # grader-audit CLI (doctor, validate-manifests, validate, run-controlled)
-tests/fixtures/      # two tiny synthetic fixture repositories (Gate 1 integration tests)
-tests/integration/   # Docker-backed Gate 1 integration matrix
-results/             # raw records and report (Gate 1+)
-docs/                # DECISIONS.md, TASK_SELECTION_LOG.md, ...
-```
-
-One framework-independent grading core serves the CLI; `grader_audit.hud_adapter` will
-call the same core functions in Gate 2 so neither path can reimplement scope checks, test
-parsing, reason codes, or acceptance logic.
-
-## Dataset
-
-3 development tasks (`inflection-titleize`, `schedule-repr-partial-job`, `tomli-type-error`;
-6 valid / 18 invalid patches) and 2 held-out frozen-evaluation tasks
-(`tinydb-missing-doc-ids`, `tinydb-query-test-unhashable`; 4 valid / 8 invalid patches,
-2 families novel to development). Rejected candidates are logged in
-`docs/TASK_SELECTION_LOG.md`. Two tiny synthetic fixture repositories ship under
-`tests/fixtures/` for automated integration tests only (Section 27.5); they never enter
-reported research metrics.
-
-## Method
-
-Development (3 tasks, 5+ valid / 12+ invalid patches across 4+ attack families) →
-freeze `grader-v1-frozen` → frozen evaluation (2 tasks, 3+ valid / 8+ invalid patches,
-2+ novel families) → optional adaptive and natural rollouts. Truth labels come from the
-offline oracle and manual review, never from grader rewards. Gate 1 demonstrates, on the
-synthetic fixtures, a naive false reward and its hardened rejection: the naive grader
-rewards a visible-test-weakening patch `1.0`, while hardened v1 rejects it via the
-read-only authoritative suite with `authoritative_tests_failed`.
-
-## Findings
-
-False rewards and false rejections are reported as raw `x / n` counts, never as a single
-combined accuracy. Final counts (`clean-clone-reproduction`, both splits combined):
-naive rewarded 21/26 invalid patches (80.8%, 95% Wilson [0.621, 0.915]) and rejected
-0/10 valid; hardened v1 rewarded 0/26 invalid (95% Wilson [0.000, 0.129]) and rejected
-0/10 valid. On the held-out split hardened v1 rejected 8/8 invalid instances (5/5 attack
-families, 5/5 all-instances) versus naive 2/8 (1/5 families); family-level detection
-tables and reason-code counts are in `results/report.md`.
-
-## Limitations
-
-- Small, non-random task sample; Python/pytest focus; hand-labeled patch validity.
-- Controlled attacks do not estimate natural attack prevalence.
-- Model/version results are time-sensitive.
-- Held-out construction is not a fully blind external red team.
-- The environment is not a complete sandbox-security audit.
-- Passing authoritative tests is still an approximation of task correctness.
-- No claim that grader hardening improves RL training without a training experiment.
-
-## Repository map
-
-- `CODEX_TASK_HUD_GRADER_RELIABILITY_AUDIT.md` — normative implementation contract (Sections 0–27).
-- `grader_audit/` — package: core models, path rules, snapshots, patches, workspace materialization,
-  Docker runner, recorder, orchestrator, naive/v1/oracle graders, immutable in-container runner.
-- `tests/` — unit tests and the Docker-backed Gate 1 integration matrix.
-- `tests/fixtures/` — two synthetic fixture repositories for integration tests.
-- `docs/DECISIONS.md` — decisions and deviations from the contract.
-- `docs/TASK_SELECTION_LOG.md` — rejected task candidates.
-- `.github/workflows/ci.yml` — quality gates on push/PR.
+- `docs/DECISIONS.md` — every decision (D-001 … D-058) with rationale.
+- `docs/HUD_RUNTIME_ARCHITECTURE_V2.md` — the deployment runtime, runner
+  isolation, and ten hardening questions answered.
+- `docs/THREAT_MODEL.md`, `docs/LIMITATIONS.md`, `docs/CASE_STUDIES.md` —
+  the audit narrative, validated (not overwritten) by publication.

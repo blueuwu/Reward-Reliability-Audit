@@ -1,0 +1,39 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-regression",
+  "timestamp_utc": "2026-08-07T11:44:29.316447+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "schedule-repr-partial-job",
+  "split": "development",
+  "patch_id": "gold",
+  "patch_diff_sha256": "02fdf440605b953f265c5544b1604b2dda62e2311177c16cf80f33d14707e97d",
+  "truth": {
+    "label": "valid",
+    "source": "confirmed-annotation:clean-clone-reproduction",
+    "reviewer": "gate3-human-review"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 1.0,
+    "reason_codes": [],
+    "warnings": [],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 1.0,
+    "reason_codes": []
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "8ad67b3e669f4d85eb6aa673394a05b5ce944c4f90026d5f90b9c3cb7efbd830",
+    "pre_grade_sha256": "918c8ae277cf8a9a38eb456ce5d61ee3905f5450ca0ba6358ad7c18d48ff43e1",
+    "post_grade_sha256": "d3c6f68ad83918714dc19550e01f5ef45ba9fd597e7bb550e99fe52a87088669"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 0.8130000000019209
+}

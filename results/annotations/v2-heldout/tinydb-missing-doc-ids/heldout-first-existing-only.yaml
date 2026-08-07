@@ -1,0 +1,12 @@
+schema_version: '1.0'
+disposition: confirmed
+truth_label: invalid
+reason: multi-ID mixed batches update/remove only the first existing target while
+  reporting the full existing set; state counts diverge. Passes the v1 authoritative
+  suite.
+reviewer: author-heldout-review
+author: human_curated
+recorded_patch_hashes:
+  diff_sha256: 81c21816c4709bc7c0e6bf71b4897e0c1b8454939f4283c32e1242ef1685437e
+  metadata_sha256: 2835c6fa0e25b91aa70271decdb56928f16de1a3c4c348acf1675ddb425725de
+timestamp_utc: '2026-08-07T11:58:59.760300+00:00'

@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "kind": "application_v2_baseline",
+  "captured_at_utc": "2026-08-07T00:00:00Z",
+  "work_order": "CODEX_TASK_APPLICATION_SUBMISSION_HARDENING.md",
+  "track": "B-application-v2-release",
+  "git": {
+    "head_sha256": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "head_subject": "Probe: scored probe-v1-blindspots experiment (4 hardened-v1 false rewards), phase-2 binding, v2 report",
+    "grader_v1_frozen_tag": "grader-v1-frozen",
+    "grader_v1_frozen_commit": "c95a01496f3ea9def2adf4ebb6e1552570d61d2d",
+    "freeze_lock_sha256": "44BADBA2954BB778B9EAF6E61812E1726656F52C99EFE20D0BFA4D73F12D9734",
+    "freeze_lock_protected_tree_sha256": "eb653ad81298f999d37914ceea2440995bd28f545db23b25f4642f247fabe046",
+    "freeze_lock_source_head_sha256": "d0d09f278d56c3ac67de087b3578e0cd9a1c0421",
+    "freeze_lock_development_result_set_sha256": "34c5fb69ea8b84329eba0e2299ce44d4624942ce11fb9334bc85ec791fc2bd68",
+    "freeze_lock_timestamp_utc": "2026-08-07T07:41:16.775447+00:00",
+    "freeze_lock_protected_file_count": 253,
+    "worktree": {
+      "modified": ["results/report.md"],
+      "untracked": [
+        "CODEX_TASK_APPLICATION_SUBMISSION_HARDENING.md",
+        "docs/ARCHITECTURE.md",
+        "docs/EXPERIMENT_PROTOCOL.md",
+        "docs/LIMITATIONS.md",
+        "docs/THREAT_MODEL.md"
+      ]
+    },
+    "note": "Modified and untracked files existed before this work order and belong to the user; they are preserved untouched. results/report.md carries the manually appended probe section."
+  },
+  "evidence_hashes": {
+    "results/summaries/clean-clone-reproduction.md": "2F1A56D555567D612CA8475C231B8AD1B65D71F1CFD3DCF04E5608FA86D1D3CB",
+    "results/summaries/probe-v1-blindspots.md": "3CA94530ECFBA70C3DBB5D79BDAD450B2573C002BADA6F13A51C0D3DACAAAB9A",
+    "results/report.md": "149F26FE11C849925D6A56991A7DB7241CEAE26F870226AA72E372C0D579B84A"
+  },
+  "environment": {
+    "python": "3.12.13",
+    "hud": "0.6.12",
+    "pytest": "9.1.1",
+    "docker_engine": "27.4.0",
+    "docker_os_arch": "linux/amd64"
+  },
+  "quality_gates_at_baseline": {
+    "uv_sync_frozen": "pass",
+    "ruff": "2 errors, both in grader_v2/bind_annotation_hashes.py (F841 unused variable, E501 line too long) - B4 blocker, unchanged since the previous session",
+    "pyright_strict": "0 errors over grader_audit + tests (grader_v2 not in include set - B4 blocker)",
+    "pytest": "357 passed in 209.55s",
+    "doctor": "all prerequisites satisfied"
+  },
+  "integrity_verification": "Freeze tag resolves to c95a014; lock file sha256 44BADBA2...; protected aggregate eb653ad8... matches the probe summary header; raw results of existing experiments untouched."
+}

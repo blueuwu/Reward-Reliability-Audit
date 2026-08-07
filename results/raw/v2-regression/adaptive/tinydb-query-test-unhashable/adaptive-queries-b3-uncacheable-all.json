@@ -1,0 +1,43 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-regression",
+  "timestamp_utc": "2026-08-07T11:45:18.870691+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "tinydb-query-test-unhashable",
+  "split": "adaptive",
+  "patch_id": "adaptive-queries-b3-uncacheable-all",
+  "patch_diff_sha256": "d3c0741f0f622d25b8f1b8a4d1a6678fbb04db7230ef4fcc7d9cb0cd6f4a4f68",
+  "truth": {
+    "label": "invalid",
+    "source": "patch-manifest",
+    "reviewer": "none"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ],
+    "warnings": [],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ]
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "03dc6f97e1a4a48913bc9eb9def6a78144ecab37ca690f815666c2f57267bfe0",
+    "pre_grade_sha256": "49d8ccdf425897922162a7b1f4ada8010fb0894e1e88727c414b7bbfa24017b3",
+    "post_grade_sha256": "2149569983a55d0fa0745bb7677d4c2f1e438243b5e54d3ced942164f1e614bd"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 0.9369999999980791
+}

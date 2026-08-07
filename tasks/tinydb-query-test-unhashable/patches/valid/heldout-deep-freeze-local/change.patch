@@ -1,0 +1,53 @@
+diff --git a/src/tinydb/queries.py b/src/tinydb/queries.py
+index 66810ce..046eea7 100644
+--- a/src/tinydb/queries.py
++++ b/src/tinydb/queries.py
+@@ -20,7 +20,7 @@
+ from collections.abc import Mapping, Callable
+ from typing import Any, Union, Optional, Protocol
+ 
+-from .utils import freeze
++from .utils import FrozenDict, freeze
+ 
+ __all__ = ('Query', 'QueryLike', 'where')
+ 
+@@ -51,6 +51,15 @@
+     def __call__(self, value: Mapping) -> bool: ...
+ 
+     def __hash__(self) -> int: ...
++
++
++def _deep_freeze(obj):
++    """Recursively freeze a query argument so the query hash is stable."""
++    if isinstance(obj, dict):
++        return FrozenDict((k, _deep_freeze(v)) for k, v in obj.items())
++    if isinstance(obj, (list, tuple)):
++        return tuple(_deep_freeze(el) for el in obj)
++    return obj
+ 
+ 
+ class QueryInstance:
+@@ -72,6 +81,14 @@
+ 
+     def __init__(self, test: Callable[[Mapping], bool], hashval: Optional[tuple]):
+         self._test = test
++        if hashval is not None:
++            try:
++                hash(hashval)
++            except TypeError:
++                # An argument that cannot be frozen at all (e.g. a custom
++                # object with ``__hash__ = None``): fall back to an
++                # uncacheable query instead of raising on first use.
++                hashval = None
+         self._hash = hashval
+ 
+     def is_cacheable(self) -> bool:
+@@ -388,7 +405,7 @@
+         """
+         return self._generate_test(
+             lambda value: func(value, *args),
+-            ('test', self._path, func, args)
++            ('test', self._path, func, tuple(_deep_freeze(arg) for arg in args))
+         )
+ 
+     def any(self, cond: Union[QueryInstance, list[Any]]) -> QueryInstance:

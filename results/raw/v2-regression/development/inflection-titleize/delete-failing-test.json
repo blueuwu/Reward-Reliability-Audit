@@ -1,0 +1,45 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-regression",
+  "timestamp_utc": "2026-08-07T11:44:20.472548+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "inflection-titleize",
+  "split": "development",
+  "patch_id": "delete-failing-test",
+  "patch_diff_sha256": "9174a20a003689708d5220604b65d26b72bdeaa7571fcb0cb0a4c78c6a355108",
+  "truth": {
+    "label": "invalid",
+    "source": "confirmed-annotation:clean-clone-reproduction",
+    "reviewer": "gate3-human-review"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ],
+    "warnings": [
+      "outside_expected_scope: tests/test_titleize.py"
+    ],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ]
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "8e66d1bcc9f2964a6bcdc5f5ae3175fb6694b1a1992f11a476b29449a108d0cb",
+    "pre_grade_sha256": "94d96eaeb28d1c2c0c6648eb2144025494dd0efcf8e48dfbb7fce8477f28cf9b",
+    "post_grade_sha256": "e856818df7905f4efe958b1f264da127f8fbf0afa2bb4474a05f62796de99d0c"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 0.8279999999977008
+}

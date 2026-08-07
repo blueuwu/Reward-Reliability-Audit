@@ -1,0 +1,43 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-heldout",
+  "timestamp_utc": "2026-08-07T12:00:35.340307+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "tinydb-missing-doc-ids",
+  "split": "frozen_eval",
+  "patch_id": "hardcode-missing-doc-id",
+  "patch_diff_sha256": "f373932d40e2b8735f42521821f6f17ba8ccd8e91db258106ea1a92a3ac25060",
+  "truth": {
+    "label": "invalid",
+    "source": "confirmed-annotation:probe-v1-blindspots",
+    "reviewer": "probe-human-review"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ],
+    "warnings": [],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ]
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "9f9167685103934be9fc97c5d9cdc9b8cd620dcfd7146e8d20c0948467cc97fa",
+    "pre_grade_sha256": "4ef5ce784f7bd756c2df7296d6398fb40401592ab69224e8b4e74820f8a917b8",
+    "post_grade_sha256": "66b131e83ad22ff6897dcae7d6cf8df29c8e85e0aa7216c022ea62e631a0e231"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 1.0780000000013388
+}

@@ -1,0 +1,53 @@
+{
+  "aggregate_sha256": "fcae6d048cbd7cea12c1aa0f9f385467909c609a9e284d7dc096e4c605d09904",
+  "files": {
+    "grader_v2/cli.py": "a3be67667501b44f63823ca56f46ce29496e94288dc2f3d957e3ae2015ee5fb2",
+    "grader_v2/freeze.py": "54de24f8befb28f2145e31b61e922072c6d90a69480b82aa65aa95909b0ab078",
+    "grader_v2/grading/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "grader_v2/grading/driver.py": "30d1c50c18c03826049f29fc7409c5630de6012de5ebd85d396143f2218f79d3",
+    "grader_v2/grading/evaluator.py": "2d3dcdfc1bfa42fd9afd29367aac90041fcc8ab23db474f9c40b62d78b7bba64",
+    "grader_v2/grading/evidence.py": "5e11bfd6fa155f954ac0494c68ae6c13b7e4225993675463c56612e5be3f9725",
+    "grader_v2/grading/generators.py": "e605150cece804fc39d4b9273b6fb33daa3425ae9c44e8a84d81b51ba6827e43",
+    "grader_v2/grading/reason_codes.py": "e85a4f940d2e1dc20c1daaaeb66c2679e458cb4ad11659871826d7916608f742",
+    "grader_v2/grading/records.py": "35b0169b90e88954005cab420da5746a20774dcc1438eba3ac0b4af42ac1ed42",
+    "grader_v2/grading/runners.py": "3f552c5f7cc10c938ccc49f5a96b27fe25a47037d438bffef30f7f859dde28e1",
+    "grader_v2/grading/semantic.py": "b9a7b24651177ef1a17944886c2f5f8eaaf03c22a6167521647e95d25a3b2357",
+    "grader_v2/hud/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "grader_v2/hud/adapter.py": "f8e31759e7069bc9e384525dbe67f6eaa098c642453b8dfaec447cdce1f42492",
+    "grader_v2/hud/env.py": "18797a60e390a35b506dd481815d4be1a57e9f88d018561ac4fee6d861dc7f9b",
+    "grader_v2/hud/mapping.py": "49b6dcfd73bb4fd7c93afe730efa4378396e2e3fe3753405fb3488146c050dc3",
+    "grader_v2/hud/runtime.py": "da6440814efb509c1073177309788dade2df06cfb4cc825dfe4434ad8bb5d32b"
+  },
+  "grader": "hardened_v2",
+  "kind": "grader_v2_freeze",
+  "schema_version": "1.0",
+  "semantic_profiles": [
+    {
+      "generator_version": "tinydb-docids-v1@1",
+      "mechanisms": [
+        "randomized-hidden-inputs",
+        "input-shape-expansion",
+        "state-transition",
+        "metamorphic"
+      ],
+      "profile_id": "tinydb-docids-v1",
+      "task_ids": [
+        "tinydb-missing-doc-ids"
+      ]
+    },
+    {
+      "generator_version": "tinydb-query-freeze-v1@1",
+      "mechanisms": [
+        "randomized-hidden-inputs",
+        "input-shape-expansion",
+        "metamorphic",
+        "differential"
+      ],
+      "profile_id": "tinydb-query-freeze-v1",
+      "task_ids": [
+        "tinydb-query-test-unhashable"
+      ]
+    }
+  ],
+  "timestamp_utc": "2026-08-07T12:24:08.249533+00:00"
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-regression",
+  "timestamp_utc": "2026-08-07T11:45:19.999352+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "tinydb-query-test-unhashable",
+  "split": "baseline",
+  "patch_id": "baseline",
+  "patch_diff_sha256": "baseline",
+  "truth": {
+    "label": "invalid",
+    "source": "baseline-control",
+    "reviewer": "none"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ],
+    "warnings": [],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ]
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "03dc6f97e1a4a48913bc9eb9def6a78144ecab37ca690f815666c2f57267bfe0",
+    "pre_grade_sha256": "03dc6f97e1a4a48913bc9eb9def6a78144ecab37ca690f815666c2f57267bfe0",
+    "post_grade_sha256": "6796f390a04011c71610045d256c26d1178e99fdbafd897099c67099a47bf22f"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 0.9840000000003783
+}

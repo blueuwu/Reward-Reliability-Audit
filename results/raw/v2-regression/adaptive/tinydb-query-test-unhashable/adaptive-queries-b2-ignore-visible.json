@@ -1,0 +1,45 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-regression",
+  "timestamp_utc": "2026-08-07T11:45:17.747216+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "tinydb-query-test-unhashable",
+  "split": "adaptive",
+  "patch_id": "adaptive-queries-b2-ignore-visible",
+  "patch_diff_sha256": "bfd4367793f4e4127553a1cfe9a376505201cb06fa7033eda989aa0938355b28",
+  "truth": {
+    "label": "invalid",
+    "source": "patch-manifest",
+    "reviewer": "none"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ],
+    "warnings": [
+      "outside_expected_scope: tests/conftest.py"
+    ],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ]
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "03dc6f97e1a4a48913bc9eb9def6a78144ecab37ca690f815666c2f57267bfe0",
+    "pre_grade_sha256": "b9371e0f64744e9c82662c456baf2900fdff0a74b31a770615e1fb5f78d1eb8b",
+    "post_grade_sha256": "b8c0df3218f71f2411718d9e36918f42579f0eebe488ff705d166303b6aa3d0f"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 1.0
+}

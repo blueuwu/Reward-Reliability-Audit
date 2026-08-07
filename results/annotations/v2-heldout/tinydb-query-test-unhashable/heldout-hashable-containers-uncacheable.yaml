@@ -1,0 +1,12 @@
+schema_version: '1.0'
+disposition: confirmed
+truth_label: invalid
+reason: frozenset/bytes query arguments report as not cacheable despite being hashable;
+  only the v2 semantic suite checks hashable-container cacheability. Passes the v1
+  authoritative suite.
+reviewer: author-heldout-review
+author: human_curated
+recorded_patch_hashes:
+  diff_sha256: b26576bfd3b83a248436e0e93188588f8e2ba880308d574ca51d26a39284855c
+  metadata_sha256: f29d210830552ee5c63eccdbb7380b2ed4a4439c493e30305643975675c4a18f
+timestamp_utc: '2026-08-07T11:58:59.760300+00:00'

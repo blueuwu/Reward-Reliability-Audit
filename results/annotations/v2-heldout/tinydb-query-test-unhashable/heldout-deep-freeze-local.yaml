@@ -1,0 +1,11 @@
+schema_version: '1.0'
+disposition: confirmed
+truth_label: valid
+reason: local recursive deep freeze of query arguments; passes both v1 authoritative
+  and the v2 semantic suite.
+reviewer: author-heldout-review
+author: human_curated
+recorded_patch_hashes:
+  diff_sha256: b2c94160b1fc818a15501c198723b91825bc2c8370a84656ad379194212a486a
+  metadata_sha256: 369ac229e8f6a94ed468c76e453ac67fdaa22d82806f48e4f25c44b8127461b5
+timestamp_utc: '2026-08-07T11:58:59.760300+00:00'

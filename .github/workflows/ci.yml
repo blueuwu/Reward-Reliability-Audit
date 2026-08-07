@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  static:
+    name: Static (Linux, no Docker)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+
+      - name: Sync locked dependencies
+        run: uv sync --frozen
+
+      - name: Configure Git identity (doctor prerequisite)
+        run: |
+          git config user.name "grader-audit CI"
+          git config user.email "grader-audit-ci@example.com"
+
+      - name: Ruff
+        run: uv run ruff check .
+
+      - name: Pyright (strict, v1 + v2)
+        run: uv run pyright
+
+      - name: Pytest (unit, no Docker tests)
+        run: uv run pytest -q tests grader_v2/tests --ignore=grader_v2/tests/test_deployment_container.py
+
+  container-integration:
+    name: Container integration + release gate (Linux, Docker required)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+
+      - name: Sync locked dependencies
+        run: uv sync --frozen
+
+      - name: Configure Git identity (doctor prerequisite)
+        run: |
+          git config user.name "grader-audit CI"
+          git config user.email "grader-audit-ci@example.com"
+
+      - name: Doctor (strict Docker mode)
+        run: GRADER_AUDIT_REQUIRE_DOCKER=1 uv run grader-audit doctor
+
+      - name: Pytest (strict Docker mode; zero unexpected skips)
+        run: GRADER_AUDIT_REQUIRE_DOCKER=1 uv run pytest -q -ra
+
+      - name: v1 freeze lock (read-only, Track-B exceptions)
+        run: uv run grader-v2 verify-v1-lock
+
+      - name: Publication validation (read-only)
+        run: uv run grader-v2 publication --mode validate
+
+      - name: Application demo (HUD deployment image, end-to-end)
+        run: uv run grader-v2 demo
+
+  windows-orchestration:
+    name: Windows orchestration (paths, reports, preflight)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+
+      - name: Sync locked dependencies
+        run: uv sync --frozen
+
+      - name: Configure Git identity (doctor prerequisite)
+        run: |
+          git config user.name "grader-audit CI"
+          git config user.email "grader-audit-ci@example.com"
+
+      - name: Pytest (unit; deployment-container tests require Linux Docker)
+        run: uv run pytest -q tests grader_v2/tests --ignore=grader_v2/tests/test_deployment_container.py
+
+      - name: Publication validation (read-only)
+        run: uv run grader-v2 publication --mode validate

@@ -1,0 +1,35 @@
+diff --git a/src/tinydb/queries.py b/src/tinydb/queries.py
+index 66810ce..36baee0 100644
+--- a/src/tinydb/queries.py
++++ b/src/tinydb/queries.py
+@@ -72,6 +72,14 @@
+ 
+     def __init__(self, test: Callable[[Mapping], bool], hashval: Optional[tuple]):
+         self._test = test
++        if hashval is not None:
++            try:
++                hash(hashval)
++            except TypeError:
++                # An argument that cannot be frozen at all (e.g. a custom
++                # object with ``__hash__ = None``): fall back to an
++                # uncacheable query instead of raising on first use.
++                hashval = None
+         self._hash = hashval
+ 
+     def is_cacheable(self) -> bool:
+@@ -386,9 +394,14 @@
+                      argument
+         :param args: Additional arguments to pass to the test function
+         """
++        hashval = ('test', self._path, func, tuple(freeze(arg) for arg in args))
++        if any(isinstance(arg, (frozenset, bytes)) for arg in args):
++            # Deliberately regressed: hashable containers must lose their
++            # cacheability, even though they can be hashed just fine.
++            hashval = None
+         return self._generate_test(
+             lambda value: func(value, *args),
+-            ('test', self._path, func, args)
++            hashval
+         )
+ 
+     def any(self, cond: Union[QueryInstance, list[Any]]) -> QueryInstance:

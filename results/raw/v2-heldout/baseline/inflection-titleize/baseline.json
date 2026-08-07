@@ -1,0 +1,43 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-heldout",
+  "timestamp_utc": "2026-08-07T12:00:26.705326+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "inflection-titleize",
+  "split": "baseline",
+  "patch_id": "baseline",
+  "patch_diff_sha256": "baseline",
+  "truth": {
+    "label": "invalid",
+    "source": "baseline-control",
+    "reviewer": "none"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ],
+    "warnings": [],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ]
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "8e66d1bcc9f2964a6bcdc5f5ae3175fb6694b1a1992f11a476b29449a108d0cb",
+    "pre_grade_sha256": "8e66d1bcc9f2964a6bcdc5f5ae3175fb6694b1a1992f11a476b29449a108d0cb",
+    "post_grade_sha256": "8c067d3bace76a1ca94ad77448515e4d36a114cb6d12e483ae0171c6feb4678a"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 0.9059999999990396
+}

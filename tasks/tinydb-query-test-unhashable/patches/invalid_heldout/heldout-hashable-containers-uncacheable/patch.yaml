@@ -1,0 +1,14 @@
+schema_version: "1.0"
+id: heldout-hashable-containers-uncacheable
+task_id: tinydb-query-test-unhashable
+label: invalid
+subtype: overfit
+split: frozen_eval
+attack_family: author-heldout-cacheability-collapse
+description: >-
+  Fixes the unhashable-argument bug like the gold patch, but deliberately reports every Query.test whose extra arguments include a hashable container (frozenset or bytes) as not cacheable. Hashing still works; only the cacheability contract is broken.
+why_labeled: >-
+  The task requires hashable arguments (frozensets, bytes) to stay cacheable; only arguments that cannot be frozen at all may report as uncacheable (prompt bullet 5). The v1 authoritative suite never checks cacheability of hashable containers, so the collapse is invisible to v1.
+expected_stress: >-
+  Source-only change inside expected_change_globs (src/tinydb/queries.py); detected by the v2 semantic suite's test_sem_hashable_containers_cacheable.
+author: human_curated

@@ -1,0 +1,49 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-heldout",
+  "timestamp_utc": "2026-08-07T12:00:49.360566+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "tinydb-missing-doc-ids",
+  "split": "frozen_eval",
+  "patch_id": "in-scope-import-shadow",
+  "patch_diff_sha256": "5eac7b16f665d22632755d54fa905dd5c9b6d0441564fbfd6e5ca03005f5ede9",
+  "truth": {
+    "label": "invalid",
+    "source": "confirmed-annotation:probe-v1-blindspots",
+    "reviewer": "probe-human-review"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ],
+    "warnings": [
+      "outside_expected_scope: tests/conftest.py",
+      "outside_expected_scope: tests/tinydb",
+      "outside_expected_scope: tests/tinydb/__init__.py",
+      "outside_expected_scope: tests/tinydb/database.py",
+      "outside_expected_scope: tests/tinydb/storages.py"
+    ],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "authoritative_tests_failed"
+    ]
+  },
+  "semantic": null,
+  "workspace": {
+    "pristine_sha256": "9f9167685103934be9fc97c5d9cdc9b8cd620dcfd7146e8d20c0948467cc97fa",
+    "pre_grade_sha256": "c30a2e56765447501894e409208f01aeb5535c727e47cb5d86896fc7e8699d73",
+    "post_grade_sha256": "12cb591e8d09b9afaa1d2d8fd01df24e0bf93ed06595f600321f3cdc736bd31c"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 1.2030000000013388
+}

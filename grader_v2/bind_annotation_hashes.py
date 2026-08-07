@@ -53,10 +53,11 @@ def bind_experiment(
                 for record_path in sorted(task_dir.glob("*.json")):
                     patch_id = record_path.stem
                     try:
-                        record = json.loads(record_path.read_bytes().decode("utf-8"))
+                        json.loads(record_path.read_bytes().decode("utf-8"))
                     except (OSError, json.JSONDecodeError) as exc:
+                        rel = record_path.relative_to(project_root)
                         print(
-                            f"error: unreadable record {record_path.relative_to(project_root)}: {exc}",
+                            f"error: unreadable record {rel}: {exc}",
                             file=sys.stderr,
                         )
                         return 3

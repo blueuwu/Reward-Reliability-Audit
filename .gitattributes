@@ -1,0 +1,3 @@
+# Patch fixtures are immutable, hashed evidence. Do not flag whitespace that is
+# intentionally present in the payload under test.
+*.patch -whitespace

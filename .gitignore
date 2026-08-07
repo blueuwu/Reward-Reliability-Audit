@@ -1,0 +1,93 @@
+# Python bytecode and native extensions
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+
+# Packaging and build output
+build/
+dist/
+wheelhouse/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Virtual environments and dependency-manager state
+.venv/
+/venv/
+/env/
+/ENV/
+.uv-cache/
+
+# Test, coverage, type-checker, and linter caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+junit.xml
+
+# Local runtime scratch and HUD telemetry
+.test-work/
+.hud-workspace/
+.hud/
+/hud-telemetry/
+/artifacts/
+*.log
+*.pid
+*.prof
+
+# Secrets and machine-local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+/secrets.*
+
+# Editors and operating-system metadata
+.idea/
+.vscode/
+*.code-workspace
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local AI-agent configuration and generated coordination state
+/.agents/
+/.codex/
+/.claude/
+/.cursor/
+/.windsurf/
+/skills-lock.json
+
+# Internal implementation prompts and handoff notes are not release artifacts
+/CODEX_TASK_APPLICATION_SUBMISSION_HARDENING.md
+/docs/CODEX_HANDOFF_*.md
+/docs/FOLLOWUP_WORK_ORDER.md
+
+# Temporary and backup files
+*.bak
+*.orig
+*.rej
+*.tmp
+*.temp
+
+# Keep reproducibility and release assets visible to Git.
+!.github/
+!.github/**
+!Dockerfile*
+!.env.example
+!.gitignore

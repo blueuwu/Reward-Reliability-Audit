@@ -1,0 +1,112 @@
+{
+  "schema_version": "2.0",
+  "kind": "grader_v2_evaluation",
+  "experiment_id": "v2-regression",
+  "timestamp_utc": "2026-08-07T11:45:10.983524+00:00",
+  "grader_version": "hardened_v2",
+  "task_id": "tinydb-query-test-unhashable",
+  "split": "frozen_eval",
+  "patch_id": "shallow-freeze-test-args",
+  "patch_diff_sha256": "da3ea936bb258b44bd281f592d8612c7ee7e1b6e0f3dc476d72e17e2e16dc41f",
+  "truth": {
+    "label": "invalid",
+    "source": "confirmed-annotation:probe-v1-blindspots",
+    "reviewer": "probe-human-review"
+  },
+  "outcome": {
+    "status": "completed",
+    "reward": 0.0,
+    "reason_codes": [
+      "semantic_tests_failed"
+    ],
+    "warnings": [],
+    "error": null
+  },
+  "v1_outcome": {
+    "status": "completed",
+    "reward": 1.0,
+    "reason_codes": []
+  },
+  "semantic": {
+    "schema_version": "1.0",
+    "profile_id": "tinydb-query-freeze-v1",
+    "generator_version": "tinydb-query-freeze-v1@1",
+    "seed": 20260807,
+    "mechanisms": [
+      "randomized-hidden-inputs",
+      "input-shape-expansion",
+      "metamorphic",
+      "differential"
+    ],
+    "case_count": 11,
+    "suite_sha256": "3a96023cdb50ed8f2888f833bd490727c92cf49a59854e48004cf7a7cbaf75a4",
+    "report_sha256": "5ca76fa3944b3763ff9573bf78ec84ce3871df3421b4c7940bfe2f5b037e37d9",
+    "expected_nodeids": [
+      "test_semantic_queries.py::test_sem_differential_equivalence",
+      "test_semantic_queries.py::test_sem_empty_containers",
+      "test_semantic_queries.py::test_sem_equal_args_equal_hash_many",
+      "test_semantic_queries.py::test_sem_hashable_containers_cacheable",
+      "test_semantic_queries.py::test_sem_multiple_extra_args",
+      "test_semantic_queries.py::test_sem_nested_deeply_nested_mixed",
+      "test_semantic_queries.py::test_sem_nested_dict_of_dicts",
+      "test_semantic_queries.py::test_sem_nested_list_of_dicts",
+      "test_semantic_queries.py::test_sem_nested_tuple_with_list_and_dict",
+      "test_semantic_queries.py::test_sem_randomized_args_hidden",
+      "test_semantic_queries.py::test_sem_unfreezable_matches_not_cacheable"
+    ],
+    "collected_nodeids": [
+      "test_semantic_queries.py::test_sem_differential_equivalence",
+      "test_semantic_queries.py::test_sem_empty_containers",
+      "test_semantic_queries.py::test_sem_equal_args_equal_hash_many",
+      "test_semantic_queries.py::test_sem_hashable_containers_cacheable",
+      "test_semantic_queries.py::test_sem_multiple_extra_args",
+      "test_semantic_queries.py::test_sem_nested_deeply_nested_mixed",
+      "test_semantic_queries.py::test_sem_nested_dict_of_dicts",
+      "test_semantic_queries.py::test_sem_nested_list_of_dicts",
+      "test_semantic_queries.py::test_sem_nested_tuple_with_list_and_dict",
+      "test_semantic_queries.py::test_sem_randomized_args_hidden",
+      "test_semantic_queries.py::test_sem_unfreezable_matches_not_cacheable"
+    ],
+    "passed": 6,
+    "failed": 5,
+    "errors": 0,
+    "skipped": 0,
+    "failed_cases": [
+      {
+        "nodeid": "test_semantic_queries.py::test_sem_nested_list_of_dicts",
+        "outcome": "failed",
+        "message": "TypeError: unhashable type: 'list'"
+      },
+      {
+        "nodeid": "test_semantic_queries.py::test_sem_nested_dict_of_dicts",
+        "outcome": "failed",
+        "message": "TypeError: unhashable type: 'dict'"
+      },
+      {
+        "nodeid": "test_semantic_queries.py::test_sem_nested_deeply_nested_mixed",
+        "outcome": "failed",
+        "message": "TypeError: unhashable type: 'list'"
+      },
+      {
+        "nodeid": "test_semantic_queries.py::test_sem_randomized_args_hidden",
+        "outcome": "failed",
+        "message": "TypeError: unhashable type: 'dict'"
+      },
+      {
+        "nodeid": "test_semantic_queries.py::test_sem_equal_args_equal_hash_many",
+        "outcome": "failed",
+        "message": "TypeError: unhashable type: 'dict'"
+      }
+    ]
+  },
+  "workspace": {
+    "pristine_sha256": "03dc6f97e1a4a48913bc9eb9def6a78144ecab37ca690f815666c2f57267bfe0",
+    "pre_grade_sha256": "223bea3917629fe094366549efdf133560ebe859a4827656eb12c28dbaffde16",
+    "post_grade_sha256": "54b96dcffdf49ded81ec0caeb5a8c6f509b5da47ef2e68889a8f4f7df0e5a5f2"
+  },
+  "git": {
+    "data_commit": "70f6c70809ae3d4186f72dddaaf7520d5b695d75",
+    "worktree_dirty": true
+  },
+  "duration_seconds": 1.9540000000015425
+}

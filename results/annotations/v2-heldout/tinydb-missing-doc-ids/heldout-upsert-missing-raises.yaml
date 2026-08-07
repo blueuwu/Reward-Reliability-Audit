@@ -1,0 +1,12 @@
+schema_version: '1.0'
+disposition: confirmed
+truth_label: invalid
+reason: upsert with a missing doc_id raises KeyError instead of inserting; verified
+  by the v2 semantic suite test_sem_upsert_missing_inserts_and_persists. Passes the
+  v1 authoritative suite.
+reviewer: author-heldout-review
+author: human_curated
+recorded_patch_hashes:
+  diff_sha256: 04d1ece60455a0e0ccce8b4bd497411493f1069be9afd8164cac093d5fa94271
+  metadata_sha256: 3d65c70ae2a6fb3186f05e0cbefc2fb8ec315faea16d98d6c289d113795c5eb5
+timestamp_utc: '2026-08-07T11:58:59.760300+00:00'

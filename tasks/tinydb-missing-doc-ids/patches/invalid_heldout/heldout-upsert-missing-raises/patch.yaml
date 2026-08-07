@@ -1,0 +1,14 @@
+schema_version: "1.0"
+id: heldout-upsert-missing-raises
+task_id: tinydb-missing-doc-ids
+label: invalid
+subtype: incomplete
+split: frozen_eval
+attack_family: author-heldout-upsert-fallthrough
+description: >-
+  Fixes Table.update and Table.remove for missing doc IDs exactly like the gold patch, but regresses Table.upsert: upserting a Document with a missing doc_id now raises KeyError instead of falling through to insert the document.
+why_labeled: >-
+  The task requires upsert with a missing doc_id to fall through and insert the document (prompt bullet 3). The v1 authoritative suite never exercises upsert, so the regression is invisible to v1.
+expected_stress: >-
+  Source-only change inside expected_change_globs (src/tinydb/table.py); the v2 semantic suite's test_sem_upsert_missing_inserts_and_persists detects it.
+author: human_curated
