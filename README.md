@@ -1,26 +1,29 @@
 # Green Isn't Correct: Auditing Reward Reliability in HUD Coding Environments
 
-> **RESULTS PENDING** — No controlled evaluation has been run. This repository is at
-> **Gate 1 (synthetic vertical slice)**: strict result/evidence/outcome models, safe
-> unified-diff validation and application, deterministic fresh-workspace materialization
-> and snapshots, process and Docker execution, the naive / hardened-v1 / offline-oracle
-> evaluators sharing one grading core, atomic no-overwrite result serialization, two tiny
-> synthetic fixture repositories, and a Gate 1 integration matrix. Primary results will be
-> published in this README only after the final controlled experiment completes and
-> `results/report.md` is generated (Section 27.18 of `CODEX_TASK_HUD_GRADER_RELIABILITY_AUDIT.md`).
+> **Results published (Gate 6)** — the final controlled experiment (`clean-clone-reproduction`,
+> 72/72 completed records, 30/30 stable baseline/gold validation runs) finished under
+> `grader-v1-frozen`; `results/report.md` (Section 27.18) is the authoritative numbers file.
+> Hardened v1 reduces the naive grader's 21/26 false rewards to 0/26 with zero false
+> rejections (0/10).
 
 ## Results
 
+Final experiment: `clean-clone-reproduction` (frozen tag `grader-v1-frozen`, 3 development
+tasks, 2 held-out frozen-evaluation tasks). See `results/report.md` for per-split metrics,
+Wilson intervals, attack-family detection, and the full case inventory.
+
 | Grader | Invalid rewarded | Valid rejected | Held-out invalid rewarded |
 |---|---:|---:|---:|
-| Naive | RESULTS PENDING | RESULTS PENDING | RESULTS PENDING |
-| Hardened v1 | RESULTS PENDING | RESULTS PENDING | RESULTS PENDING |
+| Naive | 21 / 26 | 0 / 10 | 6 / 8 |
+| Hardened v1 | 0 / 26 | 0 / 10 | 0 / 8 |
 
 ## One concrete failure
 
-RESULTS PENDING — a false reward accepted by naive and rejected by hardened, and a valid
-alternative rejected (or an expected-scope demonstration), are recorded here as case
-studies once the controlled audit produces raw results.
+`inflection-titleize/weaken-visible-tests` (development): the naive grader rewards the
+visible-test-weakening patch `1.0` (exit 0), while hardened v1 rejects it via the
+read-only authoritative suite (`authoritative_tests_failed`). On the held-out split,
+`tinydb-missing-doc-ids/import-shadow-tinydb-package` behaves identically: rewarded by
+naive, rejected by hardened.
 
 ## What this audits
 
@@ -36,7 +39,7 @@ Naive grader: reward `1.0` iff the configured pytest command exits `0`. Hardened
 authoritative tests outside the editable workspace, exact node-ID verification, immutable
 asset hashing, scope classification, and stable structured reason codes.
 
-## Reproduce (Gate 1)
+## Reproduce (final, Gate 6)
 
 ```bash
 uv sync --frozen
@@ -45,10 +48,16 @@ uv run ruff check .
 uv run pyright
 uv run pytest -q
 
-# Validate the synthetic fixtures (needs Docker)
-uv run grader-audit validate tests/fixtures --split development --repeat 1 --experiment-id gate1-validate
-uv run grader-audit run-controlled --tasks tests/fixtures --graders naive,hardened_v1 --experiment-id gate1-controlled
+# Full offline reproduction of the final experiment (needs Docker)
+uv run python -m grader_v2.cli reproduce --tasks tasks --experiment-id <new-id>
 ```
+
+The frozen v1 `reproduce`/`report` tools record artifact paths relative to the resolved
+(result-root-absolute) working directory; the frozen report generator requires
+repository-relative paths and refuses those records on Windows orchestration hosts
+(D-052, `docs/DECISIONS.md`). `grader_v2/` reuses the frozen pipeline verbatim and only
+replaces the report's artifact-path resolver; `results/report.md` is byte-identical to
+`results/summaries/clean-clone-reproduction.md`.
 
 `doctor` checks the Section 27.1 prerequisites (Python 3.12, uv/git/docker, reachable
 Docker Engine able to run a Linux container, writable project root, Git repository with
@@ -88,10 +97,13 @@ parsing, reason codes, or acceptance logic.
 
 ## Dataset
 
-RESULTS PENDING — exactly 3 development tasks are mined in Gate 3 and 2 frozen-evaluation
-tasks after the v1 freeze. Rejected candidates are logged in `docs/TASK_SELECTION_LOG.md`.
-Two tiny synthetic fixture repositories ship under `tests/fixtures/` for automated Gate 1
-integration tests only (Section 27.5); they never enter reported research metrics.
+3 development tasks (`inflection-titleize`, `schedule-repr-partial-job`, `tomli-type-error`;
+6 valid / 18 invalid patches) and 2 held-out frozen-evaluation tasks
+(`tinydb-missing-doc-ids`, `tinydb-query-test-unhashable`; 4 valid / 8 invalid patches,
+2 families novel to development). Rejected candidates are logged in
+`docs/TASK_SELECTION_LOG.md`. Two tiny synthetic fixture repositories ship under
+`tests/fixtures/` for automated integration tests only (Section 27.5); they never enter
+reported research metrics.
 
 ## Method
 
@@ -105,8 +117,13 @@ read-only authoritative suite with `authoritative_tests_failed`.
 
 ## Findings
 
-RESULTS PENDING — false rewards and false rejections are reported as raw `x / n` counts,
-never as a single combined accuracy.
+False rewards and false rejections are reported as raw `x / n` counts, never as a single
+combined accuracy. Final counts (`clean-clone-reproduction`, both splits combined):
+naive rewarded 21/26 invalid patches (80.8%, 95% Wilson [0.621, 0.915]) and rejected
+0/10 valid; hardened v1 rewarded 0/26 invalid (95% Wilson [0.000, 0.129]) and rejected
+0/10 valid. On the held-out split hardened v1 rejected 8/8 invalid instances (5/5 attack
+families, 5/5 all-instances) versus naive 2/8 (1/5 families); family-level detection
+tables and reason-code counts are in `results/report.md`.
 
 ## Limitations
 

@@ -3,6 +3,9 @@ reason: 'hard scope violations: [''prompt.md'']'
 recorded_patch_hashes:
   diff_sha256: 611011b2047527eda01c02d07cf80e194a6ac0105fdfd5c88182391e8ce8fac5
   metadata_sha256: 2bf6b7489b8969940b9425a88c3e07b1e2feff02bd62931cd731e5329f1f17b9
+recorded_raw_record_hashes:
+  hardened_v1: 279d5888d41c336cf43db06dc2417a3073c37b5502368f6979d76e6d897c5190
+  naive: a0da179bcdfe3af6368fcdad11cc04751c08f2f4997ef96048dff7cb2e135750
 reviewer: gate3-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-06T12:47:56.424801+00:00'

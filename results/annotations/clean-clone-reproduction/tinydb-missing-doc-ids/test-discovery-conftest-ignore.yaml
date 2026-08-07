@@ -3,6 +3,9 @@ reason: 'hard scope violations: [''conftest.py'']'
 recorded_patch_hashes:
   diff_sha256: 47e08601a76bb7d5068d19d28c939d923c153c350cb4503b22c8f5bbfafebb51
   metadata_sha256: 89d366ad6b56d1a16239d7e32c69a99fb69f4e0ae23055a97575e620ca849a40
+recorded_raw_record_hashes:
+  hardened_v1: 8c0051610073bb536ed07b10e054537abed53b9781855d824d187a2a88ad9038
+  naive: 620fdf5d7c9da23eab48e4408eb50019fc44e3893d96a1cd4e19b790b6a1f086
 reviewer: gate5-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-07T08:27:40.543601+00:00'

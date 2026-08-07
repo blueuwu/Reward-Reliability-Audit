@@ -1,0 +1,31 @@
+..F                                                                      [100%]
+=================================== FAILURES ===================================
+_________________ test_hash_unhashable_list_arg_does_not_raise _________________
+
+    def test_hash_unhashable_list_arg_does_not_raise():
+        def in_allowed(value, allowed):
+            return value in allowed
+    
+        q = Query().val.test(in_allowed, [1, 2, 3])
+        assert q({"val": 1})
+        assert not q({"val": 9})
+>       assert hash(q)
+               ^^^^^^^
+
+tests/test_queries_visible.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = QueryImpl('test', ('val',), <function test_hash_unhashable_list_arg_does_not_raise.<locals>.in_allowed at 0x7f5140dc0f40>, ([1, 2, 3],))
+
+    def __hash__(self) -> int:
+        # We calculate the query hash by using the ``hashval`` object which
+        # describes this query uniquely, so we can calculate a stable hash
+        # value by simply hashing it
+>       return hash(self._hash)
+               ^^^^^^^^^^^^^^^^
+E       TypeError: unhashable type: 'list'
+
+src/tinydb/queries.py:93: TypeError
+=========================== short test summary info ============================
+FAILED tests/test_queries_visible.py::test_hash_unhashable_list_arg_does_not_raise
+1 failed, 2 passed in 0.20s

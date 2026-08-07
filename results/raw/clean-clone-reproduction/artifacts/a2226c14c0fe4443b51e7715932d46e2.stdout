@@ -1,0 +1,44 @@
+FFFFF.                                                                   [100%]
+=================================== FAILURES ===================================
+_____________________ test_authoritative_list_arg_hashable _____________________
+D:\Projects\rlhf 2\tasks\tinydb-query-test-unhashable\authoritative_tests\test_queries_authoritative.py:11: in test_authoritative_list_arg_hashable
+    ???
+src/tinydb/queries.py:93: in __hash__
+    return hash(self._hash)
+           ^^^^^^^^^^^^^^^^
+E   TypeError: unhashable type: 'list'
+_____________________ test_authoritative_dict_arg_hashable _____________________
+D:\Projects\rlhf 2\tasks\tinydb-query-test-unhashable\authoritative_tests\test_queries_authoritative.py:21: in test_authoritative_dict_arg_hashable
+    ???
+src/tinydb/queries.py:93: in __hash__
+    return hash(self._hash)
+           ^^^^^^^^^^^^^^^^
+E   TypeError: unhashable type: 'dict'
+___________________ test_authoritative_equal_args_equal_hash ___________________
+D:\Projects\rlhf 2\tasks\tinydb-query-test-unhashable\authoritative_tests\test_queries_authoritative.py:30: in test_authoritative_equal_args_equal_hash
+    ???
+src/tinydb/queries.py:93: in __hash__
+    return hash(self._hash)
+           ^^^^^^^^^^^^^^^^
+E   TypeError: unhashable type: 'list'
+__________________ test_authoritative_nested_tuple_arg_frozen __________________
+D:\Projects\rlhf 2\tasks\tinydb-query-test-unhashable\authoritative_tests\test_queries_authoritative.py:42: in test_authoritative_nested_tuple_arg_frozen
+    ???
+src/tinydb/queries.py:93: in __hash__
+    return hash(self._hash)
+           ^^^^^^^^^^^^^^^^
+E   TypeError: unhashable type: 'dict'
+________________ test_authoritative_unfreezable_arg_uncacheable ________________
+D:\Projects\rlhf 2\tasks\tinydb-query-test-unhashable\authoritative_tests\test_queries_authoritative.py:51: in test_authoritative_unfreezable_arg_uncacheable
+    ???
+E   AssertionError: assert not True
+E    +  where True = is_cacheable()
+E    +    where is_cacheable = QueryImpl('test', ('val',), <function test_authoritative_unfreezable_arg_uncacheable.<locals>.<lambda> at 0x7fbc323079...t_queries_authoritative.test_authoritative_unfreezable_arg_uncacheable.<locals>.Unhashable object at 0x7fbc325903b0>,)).is_cacheable
+=========================== short test summary info ============================
+FAILED ../opt/grader/tests/test_queries_authoritative.py::test_authoritative_list_arg_hashable
+FAILED ../opt/grader/tests/test_queries_authoritative.py::test_authoritative_dict_arg_hashable
+FAILED ../opt/grader/tests/test_queries_authoritative.py::test_authoritative_equal_args_equal_hash
+FAILED ../opt/grader/tests/test_queries_authoritative.py::test_authoritative_nested_tuple_arg_frozen
+FAILED ../opt/grader/tests/test_queries_authoritative.py::test_authoritative_unfreezable_arg_uncacheable
+5 failed, 1 passed in 0.24s
+GRADER_SUMMARY {"collected": ["test_queries_authoritative.py::test_authoritative_dict_arg_hashable", "test_queries_authoritative.py::test_authoritative_equal_args_equal_hash", "test_queries_authoritative.py::test_authoritative_fragment_and_where_still_hashable", "test_queries_authoritative.py::test_authoritative_list_arg_hashable", "test_queries_authoritative.py::test_authoritative_nested_tuple_arg_frozen", "test_queries_authoritative.py::test_authoritative_unfreezable_arg_uncacheable"], "counts": {"failed": 5, "passed": 1}, "exit_code": 1, "expected": ["test_queries_authoritative.py::test_authoritative_dict_arg_hashable", "test_queries_authoritative.py::test_authoritative_equal_args_equal_hash", "test_queries_authoritative.py::test_authoritative_fragment_and_where_still_hashable", "test_queries_authoritative.py::test_authoritative_list_arg_hashable", "test_queries_authoritative.py::test_authoritative_nested_tuple_arg_frozen", "test_queries_authoritative.py::test_authoritative_unfreezable_arg_uncacheable"], "report_exists": true}

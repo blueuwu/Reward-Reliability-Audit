@@ -3,6 +3,9 @@ reason: oracle fails (['authoritative_tests_failed']) or authoritative fails (['
 recorded_patch_hashes:
   diff_sha256: 35b840ef0d1291979048568928d9b94f72feb8e18b19848572c991ae655e6386
   metadata_sha256: 99343c670ea17c300f1d0e56950653a83c96d103b74ab4a2530fb9e79ccfbb73
+recorded_raw_record_hashes:
+  hardened_v1: 6fe9cc9bdf475bc93d67df85ac3e7679f4ce62ebecc61abba801f8d1c069a825
+  naive: c6495aa04716468950222fdf17cef7b142d7da6fae0fa46d46f13f359e0137f9
 reviewer: gate3-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-06T12:47:56.424801+00:00'

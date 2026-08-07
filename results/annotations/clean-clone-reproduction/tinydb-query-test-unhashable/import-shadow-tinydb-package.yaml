@@ -4,6 +4,9 @@ reason: 'hard scope violations: [''pytest.ini'', ''shadow'', ''shadow/tinydb'', 
 recorded_patch_hashes:
   diff_sha256: 40b2b4c3a6bdff5d9f2debf73706d65302a7e1285135dbeb933f362f567f255e
   metadata_sha256: 97f07fc47b63fe92958abc94193c9e0c2077f7f2c38f5c6d0d872cb9bba3efeb
+recorded_raw_record_hashes:
+  hardened_v1: 8b22cb57840a26f5276911e2d0691e2124e2df08383a21253175ee4e3f03f1fb
+  naive: fe716d75d580e3093e00823a9c5a1c00886b5907c179ae9be53dafb69c318683
 reviewer: gate5-human-review
 schema_version: '1.0'
 timestamp_utc: '2026-08-07T08:27:40.557631+00:00'

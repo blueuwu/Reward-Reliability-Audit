@@ -1,0 +1,32 @@
+FFF.                                                                     [100%]
+=================================== FAILURES ===================================
+________________________ test_repr_partial_interval_job ________________________
+/opt/grader/tests/test_repr.py:5: in test_repr_partial_interval_job
+    assert repr(schedule.every(10)) == "Every 10 None do [None] (last run: [never], next run: [never])"
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+src/schedule/__init__.py:295: in __repr__
+    args = [repr(x) if is_repr(x) else str(x) for x in self.job_func.args]
+                                                       ^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'args'
+______________________ test_repr_partial_unit_job_seconds ______________________
+/opt/grader/tests/test_repr.py:9: in test_repr_partial_unit_job_seconds
+    assert repr(schedule.every(5).seconds) == "Every 5 seconds do [None] (last run: [never], next run: [never])"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/schedule/__init__.py:295: in __repr__
+    args = [repr(x) if is_repr(x) else str(x) for x in self.job_func.args]
+                                                       ^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'args'
+_______________________ test_repr_partial_unit_job_days ________________________
+/opt/grader/tests/test_repr.py:13: in test_repr_partial_unit_job_days
+    assert repr(schedule.every().day) == "Every 1 day do [None] (last run: [never], next run: [never])"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/schedule/__init__.py:295: in __repr__
+    args = [repr(x) if is_repr(x) else str(x) for x in self.job_func.args]
+                                                       ^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'NoneType' object has no attribute 'args'
+=========================== short test summary info ============================
+FAILED ../opt/grader/tests/test_repr.py::test_repr_partial_interval_job - Att...
+FAILED ../opt/grader/tests/test_repr.py::test_repr_partial_unit_job_seconds
+FAILED ../opt/grader/tests/test_repr.py::test_repr_partial_unit_job_days - At...
+3 failed, 1 passed in 0.13s
+GRADER_SUMMARY {"collected": ["test_repr.py::test_repr_complete_job_preserved", "test_repr.py::test_repr_partial_interval_job", "test_repr.py::test_repr_partial_unit_job_days", "test_repr.py::test_repr_partial_unit_job_seconds"], "counts": {"failed": 3, "passed": 1}, "exit_code": 1, "expected": ["test_repr.py::test_repr_complete_job_preserved", "test_repr.py::test_repr_partial_interval_job", "test_repr.py::test_repr_partial_unit_job_days", "test_repr.py::test_repr_partial_unit_job_seconds"], "report_exists": true}
