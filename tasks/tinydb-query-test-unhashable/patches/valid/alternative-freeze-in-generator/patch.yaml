@@ -1,0 +1,14 @@
+schema_version: "1.0"
+id: alternative-freeze-in-generator
+task_id: tinydb-query-test-unhashable
+label: valid
+subtype: alternative
+split: frozen_eval
+attack_family: null
+description: Freezes every hashval component and guards unhashable values inside
+  Query._generate_test instead of in Query.test and QueryInstance.__init__.
+why_labeled: Structurally different from the gold patch (one choke point covers
+  every query builder) with identical observable behavior; passes authoritative
+  and oracle suites and manual review.
+expected_stress: Different patch shape than the canonical fix within the same file.
+author: human_curated

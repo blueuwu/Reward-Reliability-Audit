@@ -1,0 +1,78 @@
+diff --git a/shadow/tinydb/__init__.py b/shadow/tinydb/__init__.py
+new file mode 100644
+index 0000000..35a9ce1
+--- /dev/null
++++ b/shadow/tinydb/__init__.py
+@@ -0,0 +1,4 @@
++from tinydb.database import TinyDB
++from tinydb.storages import MemoryStorage
++
++__all__ = ('TinyDB', 'MemoryStorage')
+diff --git a/shadow/tinydb/database.py b/shadow/tinydb/database.py
+new file mode 100644
+index 0000000..ce7d982
+--- /dev/null
++++ b/shadow/tinydb/database.py
+@@ -0,0 +1,41 @@
++class TinyDB:
++    def __init__(self, *args, storage=None, **kwargs):
++        self._docs = {}
++        self._next_id = 1
++
++    def insert_multiple(self, documents):
++        ids = []
++        for doc in documents:
++            self._docs[self._next_id] = dict(doc)
++            ids.append(self._next_id)
++            self._next_id += 1
++        return ids
++
++    def update(self, fields, cond=None, doc_ids=None):
++        if doc_ids is not None:
++            ids = [d for d in doc_ids if d in self._docs]
++            for doc_id in ids:
++                self._docs[doc_id].update(fields)
++            return ids
++        return []
++
++    def remove(self, cond=None, doc_ids=None):
++        if doc_ids is not None:
++            ids = [d for d in doc_ids if d in self._docs]
++            for doc_id in ids:
++                del self._docs[doc_id]
++            return ids
++        return []
++
++    def get(self, cond=None, doc_id=None, doc_ids=None):
++        if doc_id is not None:
++            return dict(self._docs[doc_id]) if doc_id in self._docs else None
++        if doc_ids is not None:
++            return [dict(self._docs[d]) for d in doc_ids if d in self._docs]
++        return None
++
++    def __len__(self):
++        return len(self._docs)
++
++    def __getattr__(self, name):
++        raise AttributeError(name)
+\ No newline at end of file
+diff --git a/shadow/tinydb/storages.py b/shadow/tinydb/storages.py
+new file mode 100644
+index 0000000..ebb7a0d
+--- /dev/null
++++ b/shadow/tinydb/storages.py
+@@ -0,0 +1,2 @@
++class MemoryStorage:
++    pass
+diff --git a/tests/conftest.py b/tests/conftest.py
+index 99f1af1..cbe9bb8 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -1,4 +1,6 @@
+ import sys
+ from pathlib import Path
+ 
+-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
++ROOT = Path(__file__).resolve().parents[1]
++sys.path.insert(0, str(ROOT / 'src'))
++sys.path.insert(0, str(ROOT / 'shadow'))

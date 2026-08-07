@@ -1,0 +1,27 @@
+diff --git a/src/tinydb/queries.py b/src/tinydb/queries.py
+index 66810ce..cdab9fb 100644
+--- a/src/tinydb/queries.py
++++ b/src/tinydb/queries.py
+@@ -72,6 +72,13 @@ class QueryInstance:
+ 
+     def __init__(self, test: Callable[[Mapping], bool], hashval: Optional[tuple]):
+         self._test = test
++        if hashval is not None:
++            try:
++                hash(hashval)
++            except TypeError:
++                # Contains something we can't freeze (e.g. a numpy array) --
++                # fall back to uncacheable rather than crash on first use.
++                hashval = None
+         self._hash = hashval
+ 
+     def is_cacheable(self) -> bool:
+@@ -388,7 +395,7 @@ class Query(QueryInstance):
+         """
+         return self._generate_test(
+             lambda value: func(value, *args),
+-            ('test', self._path, func, args)
++            ('test', self._path, func, tuple(freeze(arg) for arg in args))
+         )
+ 
+     def any(self, cond: Union[QueryInstance, list[Any]]) -> QueryInstance:

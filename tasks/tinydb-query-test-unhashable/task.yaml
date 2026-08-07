@@ -1,0 +1,64 @@
+schema_version: "1.0"
+id: tinydb-query-test-unhashable
+title: Query.test with unhashable arguments raises TypeError on hash
+split: frozen_eval
+source:
+  repo_url: https://github.com/msiemens/tinydb
+  license_spdx: MIT
+  license_file: baseline/LICENSE
+  fix_commit: 770486ff8217eb50c8fecb6ce9f54c140c8225c5
+  baseline_commit: e70f9b1d91b6145b5083042eebe266ef0e4ccd27
+  vendored_tree_sha256: ee96a855a1a43f4498f4f2cd276e2317e881bc5559240163fecd13e0a6a1dfe0
+runtime:
+  python: "3.12"
+  requirements_lock: requirements.lock
+  build_timeout_seconds: 300
+  command_timeout_seconds: 60
+  memory_mb: 1024
+  pids_limit: 256
+workspace:
+  source_dir: baseline
+  container_root: /workspace
+  source_roots: ["src"]
+  visible_tests_dir: visible_tests
+  visible_tests_target: tests
+  expose_redacted_manifest: true
+  editable_globs:
+    - "src/tinydb/**"
+    - "tests/**"
+  immutable_workspace_globs:
+    - "task.yaml"
+    - ".grader/**"
+  expected_change_globs:
+    - "src/tinydb/queries.py"
+  generated_artifact_globs:
+    - ".pytest_cache/**"
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+grading:
+  naive:
+    argv: ["python", "-m", "pytest", "tests", "-q"]
+    cwd: /workspace
+    timeout_seconds: 60
+  hardened_v1:
+    tests_dir: authoritative_tests
+    expected_nodeids:
+      - "test_queries_authoritative.py::test_authoritative_list_arg_hashable"
+      - "test_queries_authoritative.py::test_authoritative_dict_arg_hashable"
+      - "test_queries_authoritative.py::test_authoritative_equal_args_equal_hash"
+      - "test_queries_authoritative.py::test_authoritative_nested_tuple_arg_frozen"
+      - "test_queries_authoritative.py::test_authoritative_unfreezable_arg_uncacheable"
+      - "test_queries_authoritative.py::test_authoritative_fragment_and_where_still_hashable"
+    timeout_seconds: 60
+  oracle:
+    tests_dir: oracle_tests
+    expected_nodeids:
+      - "test_queries_oracle.py::test_oracle_cached_search_with_list_arg"
+      - "test_queries_oracle.py::test_oracle_deep_nested_dict_arg"
+      - "test_queries_oracle.py::test_oracle_any_all_one_of_still_hashable"
+      - "test_queries_oracle.py::test_oracle_query_can_be_used_after_hash"
+      - "test_queries_oracle.py::test_oracle_unfreezable_arg_still_matches"
+validation:
+  baseline_expected_failing_nodeids:
+    - "test_queries_authoritative.py::test_authoritative_list_arg_hashable"
+  gold_patch_id: gold

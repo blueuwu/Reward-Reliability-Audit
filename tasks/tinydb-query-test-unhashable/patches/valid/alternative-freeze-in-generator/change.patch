@@ -1,0 +1,39 @@
+diff --git a/src/tinydb/queries.py b/src/tinydb/queries.py
+index 66810ce..7659f7c 100644
+--- a/src/tinydb/queries.py
++++ b/src/tinydb/queries.py
+@@ -25,6 +25,16 @@ from .utils import freeze
+ __all__ = ('Query', 'QueryLike', 'where')
+ 
+ 
++def _freeze_query_value(obj):
++    if isinstance(obj, dict):
++        return tuple((k, _freeze_query_value(v)) for k, v in obj.items())
++    if isinstance(obj, (list, tuple)):
++        return tuple(_freeze_query_value(o) for o in obj)
++    if isinstance(obj, set):
++        return frozenset(_freeze_query_value(o) for o in obj)
++    return obj
++
++
+ def is_sequence(obj):
+     return hasattr(obj, '__iter__')
+ 
+@@ -222,6 +232,17 @@ class Query(QueryInstance):
+         if not self._path and not allow_empty_path:
+             raise ValueError('Query has no path')
+ 
++        if hashval is not None:
++            try:
++                # Deep-freeze every component once at the generator choke point
++                # so no builder can produce an unhashable query hash (issue #517).
++                hashval = tuple(_freeze_query_value(arg) for arg in hashval)
++                hash(hashval)
++            except TypeError:
++                # Contains something that cannot be frozen (e.g. a numpy
++                # array); degrade to an uncacheable query instead of raising.
++                hashval = None
++
+         def runner(value):
+             try:
+                 # Resolve the path

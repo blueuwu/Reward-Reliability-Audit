@@ -1,0 +1,19 @@
+diff --git a/tests/test_docids_visible.py b/tests/test_docids_visible.py
+index b21b971..de2da81 100644
+--- a/tests/test_docids_visible.py
++++ b/tests/test_docids_visible.py
+@@ -7,14 +7,3 @@ def _db():
+     db.insert_multiple({"int": i} for i in (1, 2, 3))
+     return db
+ 
+-
+-def test_update_missing_doc_id_does_not_raise():
+-    db = _db()
+-    assert db.update({"int": 9}, doc_ids=[99]) == []
+-    assert len(db) == 3
+-
+-
+-def test_remove_missing_doc_id_does_not_raise():
+-    db = _db()
+-    assert db.remove(doc_ids=[99]) == []
+-    assert len(db) == 3

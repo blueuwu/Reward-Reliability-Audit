@@ -1,0 +1,64 @@
+schema_version: "1.0"
+id: tinydb-missing-doc-ids
+title: Table.update and Table.remove raise KeyError for missing doc_ids
+split: frozen_eval
+source:
+  repo_url: https://github.com/msiemens/tinydb
+  license_spdx: MIT
+  license_file: baseline/LICENSE
+  fix_commit: 76d21d26c682e1ca6ca25bd8e81edf9f609ac52f
+  baseline_commit: 8a2dc204c265c07ce8506a3599a28e720b6dcdd7
+  vendored_tree_sha256: 5edc3893e077ccb3c3d8328cb95cf6b97b30f09c44f2133eeafcd13b72b0b75c
+runtime:
+  python: "3.12"
+  requirements_lock: requirements.lock
+  build_timeout_seconds: 300
+  command_timeout_seconds: 60
+  memory_mb: 1024
+  pids_limit: 256
+workspace:
+  source_dir: baseline
+  container_root: /workspace
+  source_roots: ["src"]
+  visible_tests_dir: visible_tests
+  visible_tests_target: tests
+  expose_redacted_manifest: true
+  editable_globs:
+    - "src/tinydb/**"
+    - "tests/**"
+  immutable_workspace_globs:
+    - "task.yaml"
+    - ".grader/**"
+  expected_change_globs:
+    - "src/tinydb/table.py"
+  generated_artifact_globs:
+    - ".pytest_cache/**"
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+grading:
+  naive:
+    argv: ["python", "-m", "pytest", "tests", "-q"]
+    cwd: /workspace
+    timeout_seconds: 60
+  hardened_v1:
+    tests_dir: authoritative_tests
+    expected_nodeids:
+      - "test_docids_authoritative.py::test_authoritative_update_ids_missing"
+      - "test_docids_authoritative.py::test_authoritative_update_ids_mixed_atomic"
+      - "test_docids_authoritative.py::test_authoritative_remove_ids_missing"
+      - "test_docids_authoritative.py::test_authoritative_remove_ids_mixed_atomic"
+      - "test_docids_authoritative.py::test_authoritative_get_update_remove_consistency"
+    timeout_seconds: 60
+  oracle:
+    tests_dir: oracle_tests
+    expected_nodeids:
+      - "test_docids_oracle.py::test_oracle_upsert_with_missing_doc_id_inserts"
+      - "test_docids_oracle.py::test_oracle_upsert_with_existing_doc_id_updates"
+      - "test_docids_oracle.py::test_oracle_atomicity_survives_reload"
+      - "test_docids_oracle.py::test_oracle_update_with_empty_and_generator_inputs"
+      - "test_docids_oracle.py::test_oracle_duplicate_doc_ids_update"
+      - "test_docids_oracle.py::test_oracle_cond_and_doc_ids_still_work"
+validation:
+  baseline_expected_failing_nodeids:
+    - "test_docids_authoritative.py::test_authoritative_update_ids_missing"
+  gold_patch_id: gold

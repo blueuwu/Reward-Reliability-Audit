@@ -1,0 +1,45 @@
+diff --git a/src/tinydb/table.py b/src/tinydb/table.py
+index 5641d22..2b6b025 100644
+--- a/src/tinydb/table.py
++++ b/src/tinydb/table.py
+@@ -438,11 +438,16 @@ class Table:
+             # Perform the update operation for documents specified by a list
+             # of document IDs
+ 
+-            updated_ids = list(doc_ids)
++            requested_ids = list(doc_ids)
++            updated_ids: List[int] = []
+ 
+             def updater(table: dict):
+-                # Call the processing callback with all document IDs
+-                for doc_id in updated_ids:
++                # Skip document IDs that don't exist in the table (issue
++                # #591), mirroring the behaviour of `get(doc_ids=...)`.
++                for doc_id in requested_ids:
++                    if doc_id not in table:
++                        continue
++                    updated_ids.append(doc_id)
+                     perform_update(table, doc_id)
+ 
+             # Perform the update operation (see _update_table for details)
+@@ -614,11 +619,17 @@ class Table:
+             # We convert the document ID iterator into a list, so we can both
+             # use the document IDs to remove the specified documents and
+             # to return the list of affected document IDs
+-            removed_ids = list(doc_ids)
++            requested_ids = list(doc_ids)
++            removed_ids: List[int] = []
+ 
+             def updater(table: dict):
+-                for doc_id in removed_ids:
+-                    table.pop(doc_id)
++                # Skip document IDs that don't exist in the table (issue
++                # #591), mirroring the behaviour of `get(doc_ids=...)`.
++                for doc_id in requested_ids:
++                    if doc_id not in table:
++                        continue
++                    removed_ids.append(doc_id)
++                    del table[doc_id]
+ 
+             # Perform the remove operation
+             self._update_table(updater)
