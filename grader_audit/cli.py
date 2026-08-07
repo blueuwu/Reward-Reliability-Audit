@@ -24,21 +24,35 @@ from grader_audit.core.annotations import (
     MissingAnnotationError,
     require_confirmed_annotation,
 )
-from grader_audit.core.docker_runner import DockerRunner
+from grader_audit.core.docker_runner import ContainerStartError, DockerRunner
 from grader_audit.core.doctor import DoctorReport, run_doctor
 from grader_audit.core.freeze import FreezeError, run_freeze
+from grader_audit.core.heldout import (
+    FrozenViolationError,
+    HeldoutInputError,
+    bind_patch_raw_hashes,
+    resolve_roots,
+    run_heldout,
+)
 from grader_audit.core.labeling import LabelingEvidence, label_task
 from grader_audit.core.manifests import LoadedTask, discover_patches, discover_tasks
 from grader_audit.core.models import PatchSplit, Split
 from grader_audit.core.orchestrator import (
     check_development_corpus_minimums,
     check_task_corpus,
-    plan_metadata,
+    git_info,
+    plan_cell,
     prepare_task,
     run_controlled,
     run_validation,
+    utc_now,
+    validation_plan_cell,
 )
+from grader_audit.core.paths import ANNOTATIONS_ROOT, LABELING_ROOT, RAW_RESULTS_ROOT
 from grader_audit.core.recorder import ExperimentRecorder, validate_experiment_id
+from grader_audit.core.reporting import ReportError, run_report
+from grader_audit.core.reproduce import ReproduceError
+from grader_audit.core.reproduce import reproduce as reproduce_pipeline
 from grader_audit.images import build_task_image, resolve_task_image
 
 app = typer.Typer(
@@ -173,7 +187,7 @@ def validate(
     repeat: int = typer.Option(3, "--repeat", min=1, help="Repeat count for baseline/gold checks"),
     experiment_id: str = typer.Option("", "--experiment-id", help="Result experiment id"),
     results_root: Path = typer.Option(
-        Path("results"), "--results-root", help="Results root directory"
+        RAW_RESULTS_ROOT, "--results-root", help="Raw results root (results/raw)"
     ),
 ) -> None:
     """Run baseline and gold from clean workspaces for the requested repeat count."""
@@ -195,6 +209,25 @@ def validate(
 
     runner = _new_runner()
     recorder = ExperimentRecorder(results_root, exp_id)
+    if recorder.experiment_dir.exists():
+        console.print(f"[bold red]error:[/bold red] experiment already exists: "
+                      f"{recorder.experiment_dir}")
+        raise typer.Exit(_EXIT_USAGE)
+    validation_plan = [
+        validation_plan_cell(task, case, idx)
+        for task in tasks
+        for case in ("baseline", "gold")
+        for idx in range(1, repeat + 1)
+    ]
+    recorder.write_metadata(
+        {
+            "schema_version": "1.0",
+            "experiment_id": exp_id,
+            "timestamp_utc": utc_now(),
+            "git": git_info(Path.cwd()).model_dump(mode="json"),
+            "plan": {"controlled": [], "validation": validation_plan},
+        }
+    )
     for task in tasks:
         image = _resolve_task_image_or_exit(task)
         console.print(f"[bold]{task.manifest.id}:[/bold] validating baseline/gold x{repeat} ...")
@@ -239,7 +272,10 @@ def run_controlled_cmd(
     graders: str = typer.Option("naive,hardened_v1", "--graders"),
     experiment_id: str = typer.Option(..., "--experiment-id"),
     results_root: Path = typer.Option(
-        Path("results"), "--results-root", help="Results root directory"
+        RAW_RESULTS_ROOT, "--results-root", help="Raw results root (results/raw)"
+    ),
+    annotations_root: Path = typer.Option(
+        ANNOTATIONS_ROOT, "--annotations-root", help="Annotations root (results/annotations)"
     ),
 ) -> None:
     """Run all development patches under each requested grader from clean workspaces."""
@@ -248,6 +284,8 @@ def run_controlled_cmd(
     except ValueError as exc:
         console.print(f"[bold red]error:[/bold red] {exc}")
         raise typer.Exit(_EXIT_USAGE) from None
+    grader_list = _parse_graders(graders)
+    _require_exact_graders(grader_list)
     tasks = _load_task_or_exit(tasks_dir)
     tasks = [task for task in tasks if task.manifest.split is Split.DEVELOPMENT]
     if not tasks:
@@ -272,16 +310,34 @@ def run_controlled_cmd(
     for task in tasks:
         for patch in discover_patches(task.task_dir, PatchSplit.DEVELOPMENT):
             try:
-                require_confirmed_annotation(results_root, experiment_id, patch)
+                require_confirmed_annotation(annotations_root, experiment_id, patch)
             except (MissingAnnotationError, AnnotationMismatchError) as exc:
                 console.print(f"[bold red]error:[/bold red] {exc}")
                 raise typer.Exit(_EXIT_USAGE) from None
 
     runner = _new_runner()
     recorder = ExperimentRecorder(results_root, experiment_id)
+    if recorder.experiment_dir.exists():
+        console.print(f"[bold red]error:[/bold red] experiment already exists: "
+                      f"{recorder.experiment_dir}")
+        raise typer.Exit(_EXIT_USAGE)
     invalid_input = 0
     infra = 0
-    grader_list = _parse_graders(graders)
+    plan = [
+        plan_cell(grader, task, patch, phase="controlled")
+        for task in tasks
+        for patch in discover_patches(task.task_dir, PatchSplit.DEVELOPMENT)
+        for grader in grader_list
+    ]
+    recorder.write_metadata(
+        {
+            "schema_version": "1.0",
+            "experiment_id": experiment_id,
+            "timestamp_utc": utc_now(),
+            "git": git_info(Path.cwd()).model_dump(mode="json"),
+            "plan": {"controlled": plan, "validation": []},
+        }
+    )
     for task in tasks:
         task_image = _resolve_task_image_or_exit(task)
         console.print(f"[bold]{task.manifest.id}:[/bold] evaluating development patches ...")
@@ -305,17 +361,32 @@ def run_controlled_cmd(
                 f"  - {record.grader.name} {patch_id}: {status} "
                 f"reward={record.result.reward} reasons={record.result.reason_codes}"
             )
-    recorder.write_metadata(
-        plan_metadata(
-            experiment_id=experiment_id, project_root=Path.cwd(), tasks=tasks, graders=grader_list
-        )
-    )
+    raw_root, ann_root = resolve_roots(Path.cwd(), results_root, annotations_root)
+    for task in tasks:
+        for patch in discover_patches(task.task_dir, PatchSplit.DEVELOPMENT):
+            bind_patch_raw_hashes(
+                raw_root,
+                ann_root,
+                experiment_id,
+                tuple(grader_list),
+                task.manifest.split.value,
+                task.manifest.id,
+                patch.manifest.id,
+            )
     if invalid_input:
         raise typer.Exit(_EXIT_USAGE)
     if infra:
         raise typer.Exit(_EXIT_INFRA)
     console.print(f"[bold green]run-controlled: experiment {experiment_id} complete[/bold green]")
     raise typer.Exit(_EXIT_OK)
+
+
+def _require_exact_graders(grader_list: list[str]) -> None:
+    if len(grader_list) != 2 or set(grader_list) != {"naive", "hardened_v1"}:
+        console.print(
+            "[bold red]error:[/bold red] --graders must be exactly naive,hardened_v1"
+        )
+        raise typer.Exit(_EXIT_USAGE)
 
 
 @app.command("build-images")
@@ -347,21 +418,14 @@ def build_images_cmd(
 
 
 def _write_labeling_evidence(
-    results_root: Path,
+    labeling_root: Path,
     labeling_id: str,
     split: str,
     task_id: str,
     patch_id: str,
     evidence: LabelingEvidence,
 ) -> Path:
-    target = (
-        results_root
-        / "labeling"
-        / labeling_id
-        / split
-        / task_id
-        / f"{patch_id}.json"
-    )
+    target = labeling_root / labeling_id / split / task_id / f"{patch_id}.json"
     if target.exists():
         raise typer.Exit(_EXIT_USAGE)
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -372,13 +436,13 @@ def _write_labeling_evidence(
 
 
 def _write_draft_annotation(
-    results_root: Path,
+    labeling_root: Path,
     labeling_id: str,
     task_id: str,
     patch_id: str,
     draft: Mapping[str, object],
 ) -> Path:
-    target = results_root / "labeling" / labeling_id / "annotations" / task_id / f"{patch_id}.yaml"
+    target = labeling_root / labeling_id / "annotations" / task_id / f"{patch_id}.yaml"
     if target.exists():
         raise typer.Exit(_EXIT_USAGE)
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -397,8 +461,8 @@ def label_patches_cmd(
     tasks_dir: Path = typer.Argument(..., help="Directory of task corpora"),
     split: str = typer.Option(..., "--split", callback=_split_enum),
     labeling_id: str = typer.Option(..., "--labeling-id"),
-    results_root: Path = typer.Option(
-        Path("results"), "--results-root", help="Results root directory"
+    labeling_root: Path = typer.Option(
+        LABELING_ROOT, "--labeling-root", help="Labeling evidence root (results/labeling)"
     ),
 ) -> None:
     """Run oracle+authoritative labeling evidence and write draft annotations (27.9/27.15)."""
@@ -425,7 +489,7 @@ def label_patches_cmd(
             task, runner=runner, image=image, labeling_id=labeling_id
         ):
             _write_labeling_evidence(
-                results_root,
+                labeling_root,
                 labeling_id,
                 split_value.value,
                 task.manifest.id,
@@ -434,7 +498,7 @@ def label_patches_cmd(
             )
             draft = evidence.draft_annotation
             _write_draft_annotation(
-                results_root, labeling_id, task.manifest.id, patch.manifest.id, draft
+                labeling_root, labeling_id, task.manifest.id, patch.manifest.id, draft
             )
             if draft["disposition"] == "confirmed":
                 confirmed += 1
@@ -459,7 +523,10 @@ def freeze(
         Path("tasks"), "--tasks", help="Directory of task corpora"
     ),
     results_root: Path = typer.Option(
-        Path("results"), "--results-root", help="Results root directory"
+        RAW_RESULTS_ROOT, "--results-root", help="Raw results root (results/raw)"
+    ),
+    annotations_root: Path = typer.Option(
+        ANNOTATIONS_ROOT, "--annotations-root", help="Annotations root (results/annotations)"
     ),
 ) -> None:
     """Freeze hardened v1 (Section 27.14): lock-only commit plus annotated tag.
@@ -477,6 +544,7 @@ def freeze(
             git_tag=git_tag,
             tasks_dir=tasks_dir,
             results_root=results_root,
+            annotations_root=annotations_root,
         )
     except FreezeError as exc:
         console.print("[bold red]freeze refused:[/bold red]")
@@ -493,4 +561,122 @@ def freeze(
     console.print(f"  protected tree : {result.protected_tree_sha256}")
     console.print(f"  result set     : {result.development_result_set_sha256}")
     console.print(f"  lock           : {result.lock_path}")
+    raise typer.Exit(_EXIT_OK)
+
+
+@app.command("run-heldout")
+def run_heldout_cmd(
+    tasks_dir: Path = typer.Option(..., "--tasks", help="Directory of task corpora"),
+    graders: str = typer.Option("naive,hardened_v1", "--graders"),
+    experiment_id: str = typer.Option(..., "--experiment-id"),
+    results_root: Path = typer.Option(
+        RAW_RESULTS_ROOT, "--results-root", help="Raw results root (results/raw)"
+    ),
+    annotations_root: Path = typer.Option(
+        ANNOTATIONS_ROOT, "--annotations-root", help="Annotations root (results/annotations)"
+    ),
+    require_tag: str = typer.Option(
+        "grader-v1-frozen", "--require-tag", help="Freeze tag that must exist"
+    ),
+) -> None:
+    """Run the frozen-evaluation matrix (Sections 27.14/27.15).
+
+    Refuses on a missing/changed freeze lock or tag, protected-path additions,
+    non-frozen_eval tasks, uncommitted held-out inputs, or missing confirmed
+    annotations. Naive and hardened_v1 run from separate clean workspaces.
+    """
+    try:
+        validate_experiment_id(experiment_id)
+    except ValueError as exc:
+        console.print(f"[bold red]error:[/bold red] {exc}")
+        raise typer.Exit(_EXIT_USAGE) from None
+    grader_list = _parse_graders(graders)
+    try:
+        summary = run_heldout(
+            project_root=Path.cwd(),
+            tasks_dir=tasks_dir,
+            raw_results_root=results_root,
+            annotations_root=annotations_root,
+            experiment_id=experiment_id,
+            graders=tuple(grader_list),
+            require_tag=require_tag,
+            runner=_new_runner(),
+        )
+    except (HeldoutInputError) as exc:
+        console.print(f"[bold red]run-heldout refused (invalid input):[/bold red] {exc}")
+        raise typer.Exit(_EXIT_USAGE) from None
+    except FrozenViolationError as exc:
+        console.print(f"[bold red]run-heldout refused (freeze violation):[/bold red] {exc}")
+        raise typer.Exit(_EXIT_FREEZE) from None
+    except ContainerStartError as exc:
+        console.print(f"[bold red]run-heldout infrastructure error:[/bold red] {exc}")
+        raise typer.Exit(_EXIT_INFRA) from None
+    console.print(
+        f"[bold green]run-heldout: experiment {summary.experiment_id} complete[/bold green]"
+    )
+    console.print(f"  tasks: {', '.join(summary.task_ids)}")
+    console.print(f"  patches: {summary.patch_count}")
+    console.print(f"  records: {summary.record_count}")
+    raise typer.Exit(_EXIT_OK)
+
+
+@app.command()
+def report(
+    input: Path = typer.Option(..., "--input", help="Raw experiment directory"),
+    output: Path = typer.Option(..., "--output", help="Output Markdown path"),
+    final: bool = typer.Option(False, "--final", help="Also write results/report.md"),
+) -> None:
+    """Generate a Markdown report from raw results (Sections 27.15-27.18).
+
+    Read-only with respect to raw results; refuses an incomplete or internally
+    inconsistent matrix (exit 3). With ``--final`` the Markdown is copied
+    byte-for-byte to ``results/report.md``.
+    """
+    try:
+        run_report(
+            project_root=Path.cwd(),
+            input_dir=input,
+            output_path=output,
+            final=final,
+        )
+    except ReportError as exc:
+        console.print(f"[bold red]report refused:[/bold red] {exc}")
+        raise typer.Exit(_EXIT_VALIDATION) from None
+    console.print(f"[bold green]report: {output}[/bold green]")
+    if final:
+        target = Path("results") / "report.md"
+        console.print(f"[bold green]report: copied byte-for-byte to {target}[/bold green]")
+    raise typer.Exit(_EXIT_OK)
+
+
+@app.command()
+def reproduce(
+    tasks_dir: Path = typer.Option(..., "--tasks", help="Directory of task corpora"),
+    experiment_id: str = typer.Option(..., "--experiment-id"),
+    results_root: Path = typer.Option(
+        RAW_RESULTS_ROOT, "--results-root", help="Raw results root (results/raw)"
+    ),
+    repeat: int = typer.Option(3, "--repeat", min=1, help="Validation repeat count"),
+) -> None:
+    """Reproduce the full offline pipeline (Section 27.15).
+
+    Runs doctor, manifest validation, image build/verification, baseline/gold
+    validation, development evaluation, frozen-lock verification, held-out
+    evaluation, and report generation. Never creates/moves a freeze tag and
+    never invokes a model.
+    """
+    try:
+        result = reproduce_pipeline(
+            project_root=Path.cwd(),
+            tasks_dir=tasks_dir,
+            raw_results_root=results_root,
+            experiment_id=experiment_id,
+            repeat=repeat,
+        )
+    except ReproduceError as exc:
+        console.print(f"[bold red]reproduce failed:[/bold red] {exc}")
+        raise typer.Exit(exc.code) from None
+    console.print(f"[bold green]reproduce: experiment {result.experiment_id} complete[/bold green]")
+    console.print(f"  steps: {', '.join(result.steps)}")
+    console.print(f"  report: {result.report_path}")
     raise typer.Exit(_EXIT_OK)

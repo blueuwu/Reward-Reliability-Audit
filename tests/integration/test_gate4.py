@@ -304,6 +304,7 @@ def _controlled_record(
     stderr_path = artifacts / f"{run_id}.stderr"
     stdout_path.write_bytes(stdout)
     stderr_path.write_bytes(stderr)
+    project_root = results_root.parent
     reward = 1.0 if patch.manifest.label.value == "valid" else 0.0
     pre = hashlib.sha256(f"{task.manifest.id}{patch.manifest.id}".encode()).hexdigest()
     pristine = hashlib.sha256(f"pristine{task.manifest.id}".encode()).hexdigest()
@@ -341,8 +342,8 @@ def _controlled_record(
             cwd="/workspace",
             exit_code=0,
             timed_out=False,
-            stdout_path=str(stdout_path),
-            stderr_path=str(stderr_path),
+            stdout_path=stdout_path.relative_to(project_root).as_posix(),
+            stderr_path=stderr_path.relative_to(project_root).as_posix(),
             stdout_sha256=sha256_bytes(stdout),
             stderr_sha256=sha256_bytes(stderr),
             stdout_truncated=False,
@@ -465,6 +466,10 @@ def _make_controlled_experiment(
             "task_id": task.manifest.id,
             "patch_id": patch.manifest.id,
             "split": "development",
+            "phase": "controlled",
+            "task_manifest_sha256": task.manifest_sha256,
+            "patch_metadata_sha256": patch.metadata_sha256,
+            "patch_diff_sha256": patch.diff_sha256,
         }
         for task in tasks
         for patch in discover_patches(task.task_dir, PatchSplit.DEVELOPMENT)
@@ -481,6 +486,7 @@ def _make_controlled_experiment(
 
     for task in tasks:
         for patch in discover_patches(task.task_dir, PatchSplit.DEVELOPMENT):
+            raw_hashes: dict[str, str] = {}
             for grader in ("naive", "hardened_v1"):
                 record = _controlled_record(
                     exp_id,
@@ -498,9 +504,23 @@ def _make_controlled_experiment(
                     / grader
                     / "development"
                     / task.manifest.id
-                    / patch.manifest.id
                 )
-                _write(record_dir / "record.json", serialize_record(record).decode("utf-8"))
+                serialized = serialize_record(record)
+                _write(record_dir / f"{patch.manifest.id}.json", serialized.decode("utf-8"))
+                raw_hashes[grader] = sha256_bytes(serialized)
+            annotation_path = (
+                results_root
+                / "annotations"
+                / exp_id
+                / task.manifest.id
+                / f"{patch.manifest.id}.yaml"
+            )
+            annotation = yaml.safe_load(annotation_path.read_text(encoding="utf-8"))
+            assert isinstance(annotation, dict)
+            annotation["recorded_raw_record_hashes"] = raw_hashes
+            annotation_path.write_text(
+                yaml.safe_dump(annotation, sort_keys=True), encoding="utf-8"
+            )
 
 
 def _make_validation_experiment(
@@ -512,6 +532,30 @@ def _make_validation_experiment(
     data_commit: str | None = None,
     worktree_dirty: bool = False,
 ) -> None:
+    validation_plan = [
+        {
+            "task_id": task.manifest.id,
+            "split": task.manifest.split.value,
+            "task_manifest_sha256": task.manifest_sha256,
+            "validation_case": case,
+            "repeat_index": idx,
+        }
+        for task in tasks
+        for case in ("baseline", "gold")
+        for idx in (1, 2, 3)
+    ]
+    _write(
+        results_root / exp_id / "metadata.json",
+        json.dumps(
+            {
+                "schema_version": "1.0",
+                "experiment_id": exp_id,
+                "timestamp_utc": "2026-08-06T00:00:00+00:00",
+                "plan": {"controlled": [], "validation": validation_plan},
+            },
+            sort_keys=True,
+        ),
+    )
     for task in tasks:
         for case in ("baseline", "gold"):
             for idx in (1, 2, 3):
@@ -592,6 +636,7 @@ def _invoke_freeze(root: Path) -> FreezeResult:
         git_tag="grader-v1-frozen",
         tasks_dir=root / "tasks",
         results_root=root / "results",
+        annotations_root=root / "results" / "annotations",
         quality_gate_runner=_pass_gates,
     )
 
@@ -654,6 +699,7 @@ def test_freeze_success_path_commits_lock_and_tags(frozen_corpus: Path) -> None:
         source_head_sha=result.source_head_sha,
         gate_results=lock["preconditions"]["quality_gates"],
         stats={},
+        raw_results_root=root / "results",
     )
     assert recomputed["protected_tree_sha256"] == lock["protected_tree_sha256"]
     assert recomputed["development_result_set_sha256"] == lock["development_result_set_sha256"]
@@ -681,6 +727,7 @@ def test_freeze_refuses_failed_quality_gate(frozen_corpus: Path) -> None:
             git_tag="grader-v1-frozen",
             tasks_dir=root / "tasks",
             results_root=root / "results",
+            annotations_root=root / "results" / "annotations",
             quality_gate_runner=fail_pytest,
         )
     assert not (root / "freeze" / "grader_v1.lock.json").exists()
@@ -730,6 +777,80 @@ def test_historical_experiments_excluded_from_freeze(frozen_corpus: Path) -> Non
     assert result.controlled_experiments == ("dev-controlled-test",)
     assert result.validation_experiments == ("dev-validate-test",)
     assert worktree_clean(root) is True
+
+
+def test_freeze_rejects_duplicate_controlled_plan_cell(frozen_corpus: Path) -> None:
+    metadata = frozen_corpus / "results" / "dev-controlled-test" / "metadata.json"
+    data = json.loads(metadata.read_text(encoding="utf-8"))
+    data["plan"]["controlled"].append(dict(data["plan"]["controlled"][0]))
+    metadata.write_text(json.dumps(data, sort_keys=True), encoding="utf-8")
+    with pytest.raises(FreezeError, match="duplicate planned cell"):
+        _invoke_freeze(frozen_corpus)
+
+
+def test_freeze_rejects_controlled_record_at_wrong_location(frozen_corpus: Path) -> None:
+    record = next(
+        (frozen_corpus / "results" / "dev-controlled-test" / "naive").rglob("*.json")
+    )
+    record.rename(record.with_name("wrong.json"))
+    with pytest.raises(FreezeError, match="record at wrong path"):
+        _invoke_freeze(frozen_corpus)
+
+
+def test_freeze_rejects_cross_grader_pristine_mismatch(frozen_corpus: Path) -> None:
+    record = next(
+        (frozen_corpus / "results" / "dev-controlled-test" / "hardened_v1").rglob(
+            "*.json"
+        )
+    )
+    data = json.loads(record.read_text(encoding="utf-8"))
+    data["workspace"]["pristine_sha256"] = "0" * 64
+    record.write_text(json.dumps(data, sort_keys=True), encoding="utf-8")
+    with pytest.raises(FreezeError, match="cross-grader pristine hash mismatch"):
+        _invoke_freeze(frozen_corpus)
+
+
+def test_freeze_rejects_artifact_outside_experiment(frozen_corpus: Path) -> None:
+    outside = frozen_corpus / "outside.txt"
+    outside.write_text("outside\n", encoding="utf-8")
+    record = next(
+        (frozen_corpus / "results" / "dev-controlled-test" / "naive").rglob("*.json")
+    )
+    data = json.loads(record.read_text(encoding="utf-8"))
+    data["process"]["stdout_path"] = "outside.txt"
+    data["process"]["stdout_sha256"] = sha256_bytes(outside.read_bytes())
+    record.write_text(json.dumps(data, sort_keys=True), encoding="utf-8")
+    with pytest.raises(FreezeError, match="missing/unsafe artifact"):
+        _invoke_freeze(frozen_corpus)
+
+
+def test_freeze_rejects_duplicate_validation_plan_cell(frozen_corpus: Path) -> None:
+    metadata = frozen_corpus / "results" / "dev-validate-test" / "metadata.json"
+    data = json.loads(metadata.read_text(encoding="utf-8"))
+    data["plan"]["validation"].append(dict(data["plan"]["validation"][0]))
+    metadata.write_text(json.dumps(data, sort_keys=True), encoding="utf-8")
+    with pytest.raises(FreezeError, match="duplicate planned validation cell"):
+        _invoke_freeze(frozen_corpus)
+
+
+def test_freeze_rejects_extra_validation_record(frozen_corpus: Path) -> None:
+    record = next(
+        (frozen_corpus / "results" / "dev-validate-test" / "validation").rglob("1.json")
+    )
+    record.with_name("99.json").write_bytes(record.read_bytes())
+    with pytest.raises(FreezeError, match="unexpected validation record path"):
+        _invoke_freeze(frozen_corpus)
+
+
+def test_freeze_rejects_validation_manifest_mismatch(frozen_corpus: Path) -> None:
+    record = next(
+        (frozen_corpus / "results" / "dev-validate-test" / "validation").rglob("1.json")
+    )
+    data = json.loads(record.read_text(encoding="utf-8"))
+    data["task"]["manifest_sha256"] = "0" * 64
+    record.write_text(json.dumps(data, sort_keys=True), encoding="utf-8")
+    with pytest.raises(FreezeError, match="validation manifest hash mismatch"):
+        _invoke_freeze(frozen_corpus)
 
 
 def test_zero_sha_controlled_cannot_satisfy_coverage(tmp_path: Path) -> None:

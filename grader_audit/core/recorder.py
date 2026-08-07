@@ -49,7 +49,7 @@ class ExperimentRecorder:
                 / record.validation_case
                 / (f"{record.repeat_index}.json")
             )
-        if record.phase == "controlled":
+        if record.phase in ("controlled", "heldout"):
             assert record.patch is not None
             name = record.grader.name
             if name not in _GRADER_DIRS:
@@ -59,8 +59,7 @@ class ExperimentRecorder:
                 / name
                 / record.task.split
                 / record.task.id
-                / record.patch.id
-                / "record.json"
+                / f"{record.patch.id}.json"
             )
         raise ValueError(f"unsupported record phase: {record.phase}")
 

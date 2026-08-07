@@ -208,14 +208,21 @@ def protected_files(project_root: Path, selection: FinalEvidenceSelection) -> li
     return sorted(path for path in tracked_files(project_root) if _under_root(path, roots))
 
 
-def result_set_files(project_root: Path, selection: FinalEvidenceSelection) -> list[str]:
+def result_set_files(
+    project_root: Path, selection: FinalEvidenceSelection, raw_results_root: Path
+) -> list[str]:
     """Tracked files that make up the final development result-set.
 
     Only the raw records and artifacts of the selected complete, stable, clean,
-    committed validation and controlled experiments are included. Historical
-    experiments (all-zero commit SHAs or dirty worktrees) never appear.
+    committed validation and controlled experiments under ``results/raw/`` are
+    included. Historical experiments (all-zero commit SHAs or dirty worktrees)
+    never appear.
     """
-    roots = [f"results/{exp}" for exp in selection.controlled + selection.validation]
+    resolved = raw_results_root
+    if resolved.is_absolute():
+        resolved = resolved.relative_to(project_root)
+    prefix = resolved.as_posix().rstrip("/")
+    roots = [f"{prefix}/{exp}" for exp in selection.controlled + selection.validation]
     return sorted(
         path for path in tracked_files(project_root) if _under_root(path, tuple(roots))
     )
@@ -252,7 +259,7 @@ def find_held_out_content(
     for name in ("grader_v2", "adaptive_attempts"):
         if (project_root / name).exists():
             errors.append(f"held-out tree present before freeze: {name}")
-    if (results_root / "model_rollouts").exists():
+    if (results_root.parent / "model_rollouts").exists():
         errors.append("results/model_rollouts present before freeze")
     if not tasks_dir.is_dir():
         return errors
@@ -342,11 +349,22 @@ def _has_controlled_plan(exp_dir: Path) -> bool:
     return isinstance(data.get("plan"), dict)
 
 
-def _resolve_artifact(project_root: Path, recorded: str) -> Path | None:
+def _resolve_artifact_in_experiment(
+    project_root: Path, exp_dir: Path, recorded: str
+) -> Path | None:
+    """Resolve an artifact path-safely and require it inside the experiment dir."""
+    from grader_audit.core.path_rules import classify_repository_relative
+
+    if not recorded or "\x00" in recorded:
+        return None
+    if classify_repository_relative(recorded) is not None:
+        return None
     candidate = project_root / Path(recorded)
     if not candidate.is_file():
-        candidate = project_root / recorded
-    if not candidate.is_file():
+        return None
+    try:
+        candidate.resolve().relative_to(exp_dir.resolve())
+    except ValueError:
         return None
     return candidate
 
@@ -354,6 +372,7 @@ def _resolve_artifact(project_root: Path, recorded: str) -> Path | None:
 def controlled_experiment_eligible(
     project_root: Path,
     results_root: Path,
+    annotations_root: Path,
     exp_dir: Path,
     exp_id: str,
     task_by_id: dict[str, LoadedTask],
@@ -380,25 +399,45 @@ def controlled_experiment_eligible(
     if not plan:
         return False, (f"{exp_id}: plan.controlled is not a list",), set()
 
-    expected: set[tuple[str, str, str]] = set()
+    expected: list[tuple[str, str, str]] = []
+    seen_plan: set[tuple[str, str, str]] = set()
     for entry in plan:
         grader = entry.get("grader")
         task_id = entry.get("task_id")
         patch_id = entry.get("patch_id")
         if isinstance(grader, str) and isinstance(task_id, str) and isinstance(patch_id, str):
-            expected.add((grader, task_id, patch_id))
-    if not expected:
+            key = (grader, task_id, patch_id)
+            if key in seen_plan:
+                reasons.append(f"{exp_id}: duplicate planned cell {key}")
+                continue
+            seen_plan.add(key)
+            expected.append(key)
+            if entry.get("phase") != "controlled":
+                reasons.append(f"{exp_id}: planned cell {key} has non-controlled phase")
+            if entry.get("split") != Split.DEVELOPMENT.value:
+                reasons.append(f"{exp_id}: planned cell {key} has wrong split")
+            task = task_by_id.get(task_id)
+            patch = patch_by_id.get((task_id, patch_id))
+            if task is None or entry.get("task_manifest_sha256") != task.manifest_sha256:
+                reasons.append(f"{exp_id}: planned task manifest mismatch for {key}")
+            if patch is None or entry.get("patch_metadata_sha256") != patch.metadata_sha256:
+                reasons.append(f"{exp_id}: planned patch metadata mismatch for {key}")
+            if patch is None or entry.get("patch_diff_sha256") != patch.diff_sha256:
+                reasons.append(f"{exp_id}: planned patch diff mismatch for {key}")
+    expected_set = set(expected)
+    if not expected_set:
         return False, (f"{exp_id}: planned matrix is empty",), set()
 
-    actual: set[tuple[str, str, str]] = set()
+    actual_keys: list[tuple[str, str, str]] = []
     records: dict[tuple[str, str, str], EvaluationRecord] = {}
+    pristine: dict[tuple[str, str], dict[str, str]] = {}
     pre_grade: dict[tuple[str, str], dict[str, str]] = {}
     for grader in ("naive", "hardened_v1"):
         grader_dir = exp_dir / grader
         if not grader_dir.is_dir():
             reasons.append(f"{exp_id}: missing {grader} records dir")
             continue
-        for record_path in sorted(grader_dir.rglob("record.json")):
+        for record_path in sorted(grader_dir.rglob("*.json")):
             try:
                 record = EvaluationRecord.model_validate(
                     json.loads(record_path.read_text(encoding="utf-8"))
@@ -416,9 +455,20 @@ def controlled_experiment_eligible(
             if patch is None:
                 reasons.append(f"{exp_id}: controlled record {record_path} lacks a patch")
                 continue
+            expected_path = (
+                grader_dir / record.task.split / record.task.id / f"{patch.id}.json"
+            )
+            if record_path.resolve() != expected_path.resolve():
+                reasons.append(f"{exp_id}: record at wrong path {record_path}")
             key = (record.grader.name, record.task.id, patch.id)
-            actual.add(key)
+            if key in records:
+                reasons.append(f"{exp_id}: duplicate actual record {key}")
+                continue
             records[key] = record
+            actual_keys.append(key)
+            pristine.setdefault((record.task.id, patch.id), {})[
+                record.grader.name
+            ] = record.workspace.pristine_sha256
             pre_grade.setdefault((record.task.id, patch.id), {})[
                 record.grader.name
             ] = record.workspace.pre_grade_sha256
@@ -456,26 +506,42 @@ def controlled_experiment_eligible(
                         f"{exp_id}: patch diff hash mismatch {record.task.id}/{patch.id}"
                     )
             process = record.process
-            if process is not None and process.stdout_sha256 and process.stdout_path:
-                artifact = _resolve_artifact(project_root, process.stdout_path)
-                if artifact is None:
-                    reasons.append(f"{exp_id}: missing artifact {process.stdout_path}")
-                elif sha256_file(artifact) != process.stdout_sha256:
-                    reasons.append(f"{exp_id}: artifact hash mismatch {process.stdout_path}")
-            if process is not None and process.stderr_sha256 and process.stderr_path:
-                artifact = _resolve_artifact(project_root, process.stderr_path)
-                if artifact is None:
-                    reasons.append(f"{exp_id}: missing artifact {process.stderr_path}")
-                elif sha256_file(artifact) != process.stderr_sha256:
-                    reasons.append(f"{exp_id}: artifact hash mismatch {process.stderr_path}")
+            if process is not None:
+                for attr in ("stdout_path", "stderr_path"):
+                    recorded = getattr(process, attr)
+                    sha = getattr(process, f"{attr[:6]}_sha256")
+                    if bool(recorded) != bool(sha):
+                        reasons.append(
+                            f"{exp_id}: artifact pair invalid for "
+                            f"{record.grader.name} {record.task.id}/{patch.id}"
+                        )
+                    elif recorded and sha:
+                        artifact = _resolve_artifact_in_experiment(
+                            project_root, exp_dir, recorded
+                        )
+                        if artifact is None:
+                            reasons.append(
+                                f"{exp_id}: missing/unsafe artifact {recorded}"
+                            )
+                        elif sha256_file(artifact) != sha:
+                            reasons.append(
+                                f"{exp_id}: artifact hash mismatch {recorded}"
+                            )
 
-    missing = sorted(expected - actual)
-    extra = sorted(actual - expected)
+    actual_set = set(actual_keys)
+    missing = sorted(expected_set - actual_set)
+    extra = sorted(actual_set - expected_set)
     if missing:
         reasons.append(f"{exp_id}: missing planned records: {missing}")
     if extra:
         reasons.append(f"{exp_id}: extra records: {extra}")
 
+    for patch_key, graders in pristine.items():
+        if len(set(graders.values())) != 1:
+            reasons.append(
+                f"{exp_id}: cross-grader pristine hash mismatch for "
+                f"{patch_key[0]}/{patch_key[1]}"
+            )
     for patch_key, graders in pre_grade.items():
         if len(set(graders.values())) != 1:
             reasons.append(
@@ -488,15 +554,16 @@ def controlled_experiment_eligible(
         if patch is None:
             continue
         try:
-            require_confirmed_annotation(results_root, exp_id, patch)
+            require_confirmed_annotation(annotations_root, exp_id, patch)
         except (MissingAnnotationError, AnnotationMismatchError) as exc:
             reasons.append(f"{exp_id}: annotation for {task_id}/{patch_id}: {exc}")
 
-    covered = {(key[1], key[2]) for key in actual}
+    covered = {(key[1], key[2]) for key in actual_keys}
     return (not reasons), tuple(reasons), covered
 
 
 def validation_experiment_eligible(
+    project_root: Path,
     exp_dir: Path,
     exp_id: str,
     dev_tasks: list[LoadedTask],
@@ -505,9 +572,45 @@ def validation_experiment_eligible(
 
     Eligible only when every development task has three stable baseline and gold
     repeats whose records carry a real nonzero commit SHA and
-    ``worktree_dirty: false``.
+    ``worktree_dirty: false``, match the task manifest identity, validate
+    process artifacts, and match the experiment's reserved validation plan
+    (when one exists) with no missing/extra/duplicate cells.
     """
     reasons: list[str] = []
+    expected: set[tuple[str, str, str, int]] | None = None
+    metadata_path = exp_dir / "metadata.json"
+    if metadata_path.is_file():
+        try:
+            data = cast(dict[str, object], json.loads(metadata_path.read_text(encoding="utf-8")))
+            plan_value = data.get("plan")
+            validation_raw: list[object] = []
+            if isinstance(plan_value, dict):
+                validation = cast(dict[str, object], plan_value).get("validation")
+                if isinstance(validation, list):
+                    validation_raw = cast(list[object], validation)
+            expected = set()
+            seen: set[tuple[str, str, str, int]] = set()
+            for entry in validation_raw:
+                if not isinstance(entry, dict):
+                    continue
+                item = cast(dict[str, object], entry)
+                repeat_value = item.get("repeat_index")
+                key = (
+                    str(item.get("split", "")),
+                    str(item.get("task_id", "")),
+                    str(item.get("validation_case", "")),
+                    int(repeat_value) if isinstance(repeat_value, int) else 0,
+                )
+                if key in seen:
+                    reasons.append(f"{exp_id}: duplicate planned validation cell {key}")
+                    continue
+                seen.add(key)
+                expected.add(key)
+        except (json.JSONDecodeError, OSError):
+            reasons.append(f"{exp_id}: unreadable validation metadata.json")
+
+    actual: set[tuple[str, str, str, int]] = set()
+    expected_paths: set[Path] = set()
     for task in dev_tasks:
         for case in ("baseline", "gold"):
             for idx in (1, 2, 3):
@@ -519,6 +622,7 @@ def validation_experiment_eligible(
                     / case
                     / f"{idx}.json"
                 )
+                expected_paths.add(path.resolve())
                 if not path.is_file():
                     reasons.append(f"{exp_id}: missing {task.manifest.id} {case} repeat {idx}")
                     continue
@@ -529,6 +633,16 @@ def validation_experiment_eligible(
                 except Exception as exc:
                     reasons.append(f"{exp_id}: invalid validation record {path}: {exc}")
                     continue
+                actual.add((task.manifest.split.value, task.manifest.id, case, idx))
+                if (
+                    record.task.id != task.manifest.id
+                    or record.task.split != task.manifest.split.value
+                    or record.validation_case != case
+                    or record.repeat_index != idx
+                ):
+                    reasons.append(
+                        f"{exp_id}: validation record identity/path mismatch at {path}"
+                    )
                 if not record.stable:
                     reasons.append(f"{exp_id}: {task.manifest.id} {case} repeat {idx} not stable")
                 if not real_commit_sha(record.git.data_commit):
@@ -541,6 +655,48 @@ def validation_experiment_eligible(
                         f"{exp_id}: {task.manifest.id} {case} repeat {idx} "
                         "recorded a dirty worktree"
                     )
+                if record.task.manifest_sha256 != task.manifest_sha256:
+                    reasons.append(
+                        f"{exp_id}: {task.manifest.id} validation manifest hash mismatch"
+                    )
+                for run in record.runs.values():
+                    process = run.process
+                    if process is None:
+                        continue
+                    for attr in ("stdout_path", "stderr_path"):
+                        recorded = getattr(process, attr)
+                        sha = getattr(process, f"{attr[:6]}_sha256")
+                        if bool(recorded) != bool(sha):
+                            reasons.append(
+                                f"{exp_id}: artifact pair invalid for "
+                                f"{task.manifest.id} {case} repeat {idx}"
+                            )
+                        elif recorded and sha:
+                            artifact = _resolve_artifact_in_experiment(
+                                project_root, exp_dir, recorded
+                            )
+                            if artifact is None:
+                                reasons.append(
+                                    f"{exp_id}: missing/unsafe artifact {recorded}"
+                                )
+                            elif sha256_file(artifact) != sha:
+                                reasons.append(
+                                    f"{exp_id}: artifact hash mismatch {recorded}"
+                                )
+
+    validation_root = exp_dir / "validation"
+    if validation_root.is_dir():
+        for path in validation_root.rglob("*.json"):
+            if path.resolve() not in expected_paths:
+                reasons.append(f"{exp_id}: unexpected validation record path {path}")
+
+    if expected is not None:
+        missing = sorted(expected - actual)
+        extra = sorted(actual - expected)
+        if missing:
+            reasons.append(f"{exp_id}: validation plan missing cells {missing}")
+        if extra:
+            reasons.append(f"{exp_id}: validation plan extra cells {extra}")
     return (not reasons), tuple(reasons)
 
 
@@ -564,7 +720,10 @@ def _empty_evidence_stats() -> dict[str, object]:
 
 
 def verify_development_results(
-    project_root: Path, results_root: Path, tasks_dir: Path
+    project_root: Path,
+    results_root: Path,
+    tasks_dir: Path,
+    annotations_root: Path,
 ) -> tuple[list[str], dict[str, object], FinalEvidenceSelection]:
     """Select final evidence and verify it (read-only, content/provenance-based).
 
@@ -600,6 +759,8 @@ def verify_development_results(
     validation_candidates: list[str] = []
     selected_controlled: list[str] = []
     selected_validation: list[str] = []
+    controlled_rejections: list[str] = []
+    validation_rejections: list[str] = []
     covered: set[tuple[str, str]] = set()
     for exp_dir in experiment_dirs:
         is_controlled = (
@@ -609,9 +770,10 @@ def verify_development_results(
         )
         if is_controlled:
             controlled_candidates.append(exp_dir.name)
-            eligible, _reasons, exp_covered = controlled_experiment_eligible(
+            eligible, reasons, exp_covered = controlled_experiment_eligible(
                 project_root,
                 results_root,
+                annotations_root,
                 exp_dir,
                 exp_dir.name,
                 task_by_id,
@@ -620,11 +782,17 @@ def verify_development_results(
             if eligible:
                 selected_controlled.append(exp_dir.name)
                 covered |= exp_covered
+            else:
+                controlled_rejections.extend(reasons)
         if (exp_dir / "validation").is_dir():
             validation_candidates.append(exp_dir.name)
-            eligible, _reasons = validation_experiment_eligible(exp_dir, exp_dir.name, dev_tasks)
+            eligible, reasons = validation_experiment_eligible(
+                project_root, exp_dir, exp_dir.name, dev_tasks
+            )
             if eligible:
                 selected_validation.append(exp_dir.name)
+            else:
+                validation_rejections.extend(reasons)
 
     if not controlled_candidates:
         errors.append("no controlled experiment found under results/")
@@ -634,6 +802,7 @@ def verify_development_results(
             "incomplete records, non-completed outcomes, an all-zero commit SHA, "
             "a dirty worktree, or missing/mismatched annotations"
         )
+        errors.extend(controlled_rejections)
     if not validation_candidates:
         errors.append("no validation experiment found under results/")
     elif not selected_validation:
@@ -641,6 +810,7 @@ def verify_development_results(
             "no eligible validation experiment: every validation experiment has "
             "unstable repeats, an all-zero commit SHA, or a dirty worktree"
         )
+        errors.extend(validation_rejections)
 
     selection = FinalEvidenceSelection(
         controlled=tuple(selected_controlled), validation=tuple(selected_validation)
@@ -716,9 +886,12 @@ def build_freeze_lock(
     source_head_sha: str,
     gate_results: dict[str, dict[str, object]],
     stats: dict[str, object],
+    raw_results_root: Path,
 ) -> dict[str, object]:
     protected = _hash_tracked(project_root, protected_files(project_root, selection))
-    result_files = _hash_tracked(project_root, result_set_files(project_root, selection))
+    result_files = _hash_tracked(
+        project_root, result_set_files(project_root, selection, raw_results_root)
+    )
     dev_tasks = [task for task in tasks if task.manifest.split is Split.DEVELOPMENT]
     task_records: list[dict[str, object]] = []
     for task in dev_tasks:
@@ -817,6 +990,7 @@ def run_freeze(
     git_tag: str,
     tasks_dir: Path,
     results_root: Path,
+    annotations_root: Path,
     lock_rel_path: Path = DEFAULT_FREEZE_LOCK_REL,
     quality_gate_runner: QualityGateRunner | None = None,
 ) -> FreezeResult:
@@ -855,7 +1029,7 @@ def run_freeze(
     problems += verify_task_image_locks(dev_tasks)
 
     result_errors, stats, selection = verify_development_results(
-        project_root, results_root, tasks_dir
+        project_root, results_root, tasks_dir, annotations_root
     )
     problems += result_errors
 
@@ -880,6 +1054,7 @@ def run_freeze(
         source_head_sha=source_head,
         gate_results=gate_results,
         stats=stats,
+        raw_results_root=results_root,
     )
     _atomic_write_json(lock_path, payload)
 
@@ -919,7 +1094,10 @@ def run_freeze(
             _hash_tracked(project_root, protected_files(project_root, selection))
         )
         result_after = aggregate_rel_hashes(
-            _hash_tracked(project_root, result_set_files(project_root, selection))
+            _hash_tracked(
+                project_root,
+                result_set_files(project_root, selection, results_root),
+            )
         )
         recorded_protected = cast(str, payload["protected_tree_sha256"])
         recorded_result = cast(str, payload["development_result_set_sha256"])

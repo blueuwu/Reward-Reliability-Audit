@@ -675,6 +675,9 @@ def run_controlled(
     project_root: Path,
     graders: list[str],
 ) -> list[EvaluationRecord]:
+    required_graders = {"naive", "hardened_v1"}
+    if set(graders) != required_graders or len(graders) != len(required_graders):
+        raise ValueError("graders must be exactly ['naive', 'hardened_v1']")
     runtime = prepare_task(task)
     patches = discover_patches(task.task_dir, PatchSplit.DEVELOPMENT)
     records: list[EvaluationRecord] = []
@@ -721,7 +724,7 @@ def _run_controlled_patch_grader(
                     code="patch_apply_failed", message=apply_result.error or "git apply failed"
                 ),
             )
-            return _build_controlled_record(
+            return build_patch_record(
                 runtime,
                 patch,
                 grader_name,
@@ -738,7 +741,7 @@ def _run_controlled_patch_grader(
         evaluator_result = evaluate_grader(
             grader_name, runtime, workspace, pre_grade, runner=runner, image=image
         )
-        return _build_controlled_record(
+        return build_patch_record(
             runtime,
             patch,
             grader_name,
@@ -755,7 +758,7 @@ def _run_controlled_patch_grader(
         manager.finalize_and_destroy(workspace)
 
 
-def _build_controlled_record(
+def build_patch_record(
     runtime: TaskRuntime,
     patch: LoadedPatch,
     grader_name: str,
@@ -767,6 +770,9 @@ def _build_controlled_record(
     recorder: ExperimentRecorder,
     project_root: Path,
     image: str,
+    *,
+    phase: str = Phase.CONTROLLED.value,
+    grader_frozen_commit: str | None = None,
 ) -> EvaluationRecord:
     run_id = uuid.uuid4().hex
     process = outcome.process
@@ -776,16 +782,23 @@ def _build_controlled_record(
         process.stdout_path = str(stdout_path)
         process.stderr_path = str(stderr_path)
 
+    git = git_info(project_root)
+    if grader_frozen_commit is not None:
+        git = GitInfo(
+            data_commit=git.data_commit,
+            grader_frozen_commit=grader_frozen_commit,
+            worktree_dirty=git.worktree_dirty,
+        )
     record = EvaluationRecord(
         schema_version="1.0",
         run_id=run_id,
         experiment_id=recorder.experiment_id,
         timestamp_utc=utc_now(),
         status=outcome.status.value,
-        phase=Phase.CONTROLLED.value,
+        phase=phase,
         validation_case=None,
         repeat_index=0,
-        git=git_info(project_root),
+        git=git,
         grader=GraderInfo(name=grader_name, version=_GRADER_VERSION),
         task=task_info(runtime.task),
         patch=patch_info(patch),
@@ -801,6 +814,39 @@ def _build_controlled_record(
     return record
 
 
+def plan_cell(
+    grader: str,
+    task: LoadedTask,
+    patch: LoadedPatch,
+    *,
+    phase: str,
+) -> dict[str, object]:
+    """One planned-matrix cell carrying immutable identity hashes (27.16)."""
+    return {
+        "grader": grader,
+        "task_id": task.manifest.id,
+        "patch_id": patch.manifest.id,
+        "split": task.manifest.split.value,
+        "phase": phase,
+        "task_manifest_sha256": task.manifest_sha256,
+        "patch_metadata_sha256": patch.metadata_sha256,
+        "patch_diff_sha256": patch.diff_sha256,
+    }
+
+
+def validation_plan_cell(
+    task: LoadedTask, validation_case: str, repeat_index: int
+) -> dict[str, object]:
+    """One planned validation cell (Section 27.16 validation paths)."""
+    return {
+        "task_id": task.manifest.id,
+        "split": task.manifest.split.value,
+        "task_manifest_sha256": task.manifest_sha256,
+        "validation_case": validation_case,
+        "repeat_index": repeat_index,
+    }
+
+
 def plan_metadata(
     *,
     experiment_id: str,
@@ -809,17 +855,12 @@ def plan_metadata(
     graders: list[str],
 ) -> dict[str, object]:
     """Build the planned-matrix metadata document (Section 27.16)."""
-    controlled: list[dict[str, str]] = []
+    controlled: list[dict[str, object]] = []
     for task in tasks:
         for patch in discover_patches(task.task_dir, PatchSplit.DEVELOPMENT):
             for grader in graders:
                 controlled.append(
-                    {
-                        "grader": grader,
-                        "task_id": task.manifest.id,
-                        "patch_id": patch.manifest.id,
-                        "split": task.manifest.split.value,
-                    }
+                    plan_cell(grader, task, patch, phase=Phase.CONTROLLED.value)
                 )
     return {
         "schema_version": "1.0",

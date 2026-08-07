@@ -16,7 +16,7 @@ from tests.conftest import FIXTURES_DIR, requires_docker
 cli_runner = CliRunner()
 
 
-def _write_annotations(results_root: Path, experiment_id: str) -> None:
+def _write_annotations(annotations_root: Path, experiment_id: str) -> None:
     for task in discover_tasks(FIXTURES_DIR):
         for patch in discover_patches(task.task_dir, PatchSplit.DEVELOPMENT):
             annotation = {
@@ -32,8 +32,7 @@ def _write_annotations(results_root: Path, experiment_id: str) -> None:
                 },
             }
             path = (
-                results_root
-                / "annotations"
+                annotations_root
                 / experiment_id
                 / task.manifest.id
                 / f"{patch.manifest.id}.yaml"
@@ -46,8 +45,9 @@ def _write_annotations(results_root: Path, experiment_id: str) -> None:
 def test_run_controlled_cli_end_to_end() -> None:
     with tempfile.TemporaryDirectory(prefix="ga-cli-") as tmp:
         results_root = Path(tmp) / "results"
+        annotations_root = Path(tmp) / "annotations"
         experiment_id = "gate1-cli-controlled"
-        _write_annotations(results_root, experiment_id)
+        _write_annotations(annotations_root, experiment_id)
         result = cli_runner.invoke(
             app,
             [
@@ -60,6 +60,8 @@ def test_run_controlled_cli_end_to_end() -> None:
                 experiment_id,
                 "--results-root",
                 str(results_root),
+                "--annotations-root",
+                str(annotations_root),
             ],
         )
         assert result.exit_code == 0, result.output
@@ -70,16 +72,14 @@ def test_run_controlled_cli_end_to_end() -> None:
             / "naive"
             / "development"
             / "fixture-stringutil"
-            / "weaken-visible-tests"
-            / "record.json"
+            / "weaken-visible-tests.json"
         ).is_file()
         assert (
             raw
             / "hardened_v1"
             / "development"
             / "fixture-stringutil"
-            / "weaken-visible-tests"
-            / "record.json"
+            / "weaken-visible-tests.json"
         ).is_file()
 
 
@@ -87,6 +87,7 @@ def test_run_controlled_cli_end_to_end() -> None:
 def test_run_controlled_refuses_missing_annotation() -> None:
     with tempfile.TemporaryDirectory(prefix="ga-cli-") as tmp:
         results_root = Path(tmp) / "results"
+        annotations_root = Path(tmp) / "annotations"
         experiment_id = "gate1-cli-missing-annotation"
         result = cli_runner.invoke(
             app,
@@ -100,6 +101,8 @@ def test_run_controlled_refuses_missing_annotation() -> None:
                 experiment_id,
                 "--results-root",
                 str(results_root),
+                "--annotations-root",
+                str(annotations_root),
             ],
         )
         assert result.exit_code == 2
@@ -110,6 +113,7 @@ def test_run_controlled_refuses_missing_annotation() -> None:
 def test_run_controlled_refuses_hash_mismatch_annotation() -> None:
     with tempfile.TemporaryDirectory(prefix="ga-cli-") as tmp:
         results_root = Path(tmp) / "results"
+        annotations_root = Path(tmp) / "annotations"
         experiment_id = "gate1-cli-bad-annotation"
         task = load_task(FIXTURES_DIR / "fixture-stringutil")
         patch = discover_patches(task.task_dir, PatchSplit.DEVELOPMENT)[0]
@@ -126,8 +130,7 @@ def test_run_controlled_refuses_hash_mismatch_annotation() -> None:
             },
         }
         path = (
-            results_root
-            / "annotations"
+            annotations_root
             / experiment_id
             / task.manifest.id
             / f"{patch.manifest.id}.yaml"
@@ -141,11 +144,13 @@ def test_run_controlled_refuses_hash_mismatch_annotation() -> None:
                 "--tasks",
                 str(FIXTURES_DIR),
                 "--graders",
-                "naive",
+                "naive,hardened_v1",
                 "--experiment-id",
                 experiment_id,
                 "--results-root",
                 str(results_root),
+                "--annotations-root",
+                str(annotations_root),
             ],
         )
         assert result.exit_code == 2

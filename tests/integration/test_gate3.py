@@ -55,7 +55,7 @@ def test_label_patches_writes_confirmed_evidence_for_gold() -> None:
                 "development",
                 "--labeling-id",
                 labeling_id,
-                "--results-root",
+                "--labeling-root",
                 str(results_root),
             ],
         )
@@ -64,7 +64,6 @@ def test_label_patches_writes_confirmed_evidence_for_gold() -> None:
         evidence = json.loads(
             (
                 results_root
-                / "labeling"
                 / labeling_id
                 / "development"
                 / task.manifest.id
@@ -76,7 +75,6 @@ def test_label_patches_writes_confirmed_evidence_for_gold() -> None:
         assert evidence["patch"]["id"] == "gold"
         draft = (
             results_root
-            / "labeling"
             / labeling_id
             / "annotations"
             / task.manifest.id

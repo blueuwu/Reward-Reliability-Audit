@@ -238,7 +238,7 @@ def test_protected_and_result_set_selection(tmp_path: Path) -> None:
     assert "results/annotations/dev-gate4-controlled/x/gold.yaml" in protected
     assert "results/annotations/dev-gate3-controlled/x/gold.yaml" not in protected
 
-    result_set = result_set_files(root, selection)
+    result_set = result_set_files(root, selection, root / "results")
     assert "results/dev-gate4-controlled/record.json" in result_set
     assert "results/dev-gate4-validate-r3/record.json" in result_set
     assert "results/dev-gate3-controlled/record.json" not in result_set
@@ -341,6 +341,7 @@ def test_run_freeze_refuses_wrong_grader(tmp_path: Path) -> None:
             git_tag="grader-v1-frozen",
             tasks_dir=root / "tasks",
             results_root=root / "results",
+            annotations_root=root / "results" / "annotations",
         )
 
 
@@ -355,6 +356,7 @@ def test_run_freeze_refuses_no_commits(tmp_path: Path) -> None:
             git_tag="grader-v1-frozen",
             tasks_dir=root / "tasks",
             results_root=root / "results",
+            annotations_root=root / "results" / "annotations",
         )
 
 
@@ -371,6 +373,7 @@ def test_run_freeze_refuses_no_development_tasks(tmp_path: Path) -> None:
             git_tag="grader-v1-frozen",
             tasks_dir=root / "tasks",
             results_root=root / "results",
+            annotations_root=root / "results" / "annotations",
         )
 
 
@@ -387,6 +390,7 @@ def test_run_freeze_refuses_existing_tag(tmp_path: Path) -> None:
             git_tag="grader-v1-frozen",
             tasks_dir=root / "tasks",
             results_root=root / "results",
+            annotations_root=root / "results" / "annotations",
         )
 
 
@@ -403,6 +407,7 @@ def test_run_freeze_refuses_dirty_worktree(tmp_path: Path) -> None:
             git_tag="grader-v1-frozen",
             tasks_dir=root / "tasks",
             results_root=root / "results",
+            annotations_root=root / "results" / "annotations",
         )
 
 
@@ -418,6 +423,7 @@ def test_run_freeze_refuses_held_out_task(tmp_path: Path) -> None:
             git_tag="grader-v1-frozen",
             tasks_dir=root / "tasks",
             results_root=root / "results",
+            annotations_root=root / "results" / "annotations",
         )
 
 
@@ -435,6 +441,7 @@ def test_run_freeze_refuses_missing_git_author(
             git_tag="grader-v1-frozen",
             tasks_dir=root / "tasks",
             results_root=root / "results",
+            annotations_root=root / "results" / "annotations",
         )
 
 
@@ -450,6 +457,7 @@ def test_run_freeze_refuses_invalid_tag_name(tmp_path: Path) -> None:
             git_tag="bad tag!",
             tasks_dir=root / "tasks",
             results_root=root / "results",
+            annotations_root=root / "results" / "annotations",
         )
 
 

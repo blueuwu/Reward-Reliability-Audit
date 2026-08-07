@@ -1,5 +1,8 @@
 # Codex handoff — 2026-08-06
 
+> Superseded by `docs/CODEX_HANDOFF_2026-08-07.md`, which captures the later
+> Gate 4 recovery and interrupted second reliability-audit pass.
+
 ## Objective
 
 Continue implementing `CODEX_TASK_HUD_GRADER_RELIABILITY_AUDIT.md` with OpenCode using
@@ -111,4 +114,3 @@ versions, and UTC timestamp.
 
 Do not begin Gate 5, create or inspect held-out attacks, add `grader_v2`, generate final
 reports, or run model rollouts.
-

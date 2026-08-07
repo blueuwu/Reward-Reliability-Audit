@@ -43,6 +43,18 @@ def _records_for(
     ]
 
 
+def test_run_controlled_requires_exact_frozen_grader_pair(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="graders must be exactly"):
+        run_controlled(
+            _task(STRINGUTIL),
+            recorder=ExperimentRecorder(tmp_path, "bad-graders"),
+            runner=DockerRunner(),
+            image="unused",
+            project_root=Path.cwd(),
+            graders=["naive"],
+        )
+
+
 @pytest.fixture(scope="module")
 def stringutil_controlled(fixture_image: str, runner: DockerRunner) -> list[EvaluationRecord]:
     task = _task(STRINGUTIL)
