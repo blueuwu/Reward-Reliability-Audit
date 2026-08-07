@@ -26,7 +26,7 @@ TASKS_DIR = PROJECT_ROOT / "tasks"
 cli_runner = CliRunner()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def preserve_tracked_image_locks() -> Iterator[None]:
     """Restore the tracked ``image.lock.json`` files these tests rewrite.
 
@@ -36,6 +36,14 @@ def preserve_tracked_image_locks() -> Iterator[None]:
     rebuilt digest left behind here makes ``verify_v1_lock`` report a protected
     mismatch later in the same session -- a failure that never reproduces on a
     host without Docker, because these tests are skipped there.
+
+    The scope is deliberately the module, not the test. A recorded digest names
+    an image built on whichever machine ran the freeze, and ``resolve_task_image``
+    hands it to ``docker run`` unverified, so restoring between tests would point
+    ``label-patches`` at an image this host never built. Restoring after the last
+    test keeps the digest built by ``test_build_images_writes_locked_digests``
+    live for the rest of the module while still leaving the tree clean for
+    ``verify_v1_lock``.
     """
     saved = {path: path.read_bytes() for path in sorted(TASKS_DIR.glob("*/image.lock.json"))}
     try:
