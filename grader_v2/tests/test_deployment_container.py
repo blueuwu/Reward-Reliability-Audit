@@ -12,6 +12,7 @@ import asyncio
 from pathlib import Path
 
 import pytest
+from hud.eval.run import Run
 
 from grader_audit.core.docker_runner import ContainerStartError
 from grader_audit.core.manifests import discover_patches, load_task
@@ -28,6 +29,20 @@ from grader_v2.tests.conftest import requires_docker
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 _TASK_ID = "tinydb-missing-doc-ids"
 _NAIVE = "naive"
+
+
+def _run_diagnostics(run: Run) -> str:
+    """Render everything the rollout recorded so a failing gate names its cause."""
+    parts = [f"status={run.trace.status}"]
+    if run.trace.stop_reason:
+        parts.append(f"stop_reason={run.trace.stop_reason}")
+    if run.trace.content:
+        parts.append(f"content={run.trace.content!r}")
+    try:
+        parts.append(f"evaluation={run.evaluation!r}")
+    except Exception as exc:  # pragma: no cover - diagnostic only
+        parts.append(f"evaluation_unavailable={exc!r}")
+    return "; ".join(parts)
 
 
 @pytest.fixture(scope="session")
@@ -57,9 +72,9 @@ def test_deployment_image_runs_baseline_and_gold(deployment_image: str) -> None:
                 url=container.url, task_id=_TASK_ID, grader_version=_NAIVE
             )
         )
-        assert baseline.reward == 0.0
-        assert baseline.trace.status == "completed"
-        assert baseline.trace.trace_id
+        assert baseline.reward == 0.0, _run_diagnostics(baseline)
+        assert baseline.trace.status == "completed", _run_diagnostics(baseline)
+        assert baseline.trace.trace_id, _run_diagnostics(baseline)
 
         gold = asyncio.run(
             run_stub_rollout_remote(
@@ -69,8 +84,8 @@ def test_deployment_image_runs_baseline_and_gold(deployment_image: str) -> None:
                 diff_text=_gold_diff(),
             )
         )
-        assert gold.reward == 1.0
-        assert gold.trace.status == "completed"
+        assert gold.reward == 1.0, _run_diagnostics(gold)
+        assert gold.trace.status == "completed", _run_diagnostics(gold)
     finally:
         asyncio.run(container.stop())
 
@@ -121,7 +136,7 @@ def test_agent_cannot_apply_patches_outside_workspace(
             )
         )
         assert result.trace.content is not None
-        assert "patch apply failed" in result.trace.content
-        assert result.reward == 0.0
+        assert "patch apply failed" in result.trace.content, _run_diagnostics(result)
+        assert result.reward == 0.0, _run_diagnostics(result)
     finally:
         asyncio.run(container.stop())
