@@ -150,7 +150,7 @@ def start_deployment_container(
 ) -> DeploymentContainer:
     """Start the deployment container with a published control channel.
 
-    The security options and ``SYS_ADMIN`` capability are required, not
+    The security options and ``SYS_ADMIN``/``NET_ADMIN`` capabilities are required, not
     incidental. The HUD workspace isolates every agent SSH session with bwrap,
     which creates nested
     user, PID, IPC, UTS, cgroup, and network namespaces. On GitHub's Ubuntu
@@ -159,10 +159,12 @@ def start_deployment_container(
     creation fails, ``--unshare-user-try`` silently degrades and a later
     non-optional unshare exits with EPERM, so every agent command exits 1.
 
-    ``SYS_ADMIN`` is available only to bubblewrap while it constructs that
-    boundary. The deployment workspace adds ``--cap-drop ALL`` before the agent
-    command, so the command itself has an empty effective capability set. The
-    container receives no host mounts or Docker socket.
+    ``SYS_ADMIN`` and ``NET_ADMIN`` are available only to bubblewrap while it
+    constructs that boundary (including loopback in the new network namespace).
+    The deployment workspace runs the agent command through ``setpriv`` after
+    setup, with empty effective, permitted, inheritable, ambient, and bounding
+    capability sets plus ``no_new_privs``. The container receives no host mounts
+    or Docker socket.
     """
     port = host_port or _DEFAULT_HOST_PORT
     name = f"ga-hud-app-{uuid.uuid4().hex[:8]}"
@@ -181,6 +183,8 @@ def start_deployment_container(
             str(pids_limit),
             "--cap-add",
             "SYS_ADMIN",
+            "--cap-add",
+            "NET_ADMIN",
             "--security-opt",
             "apparmor=unconfined",
             "--security-opt",
@@ -229,7 +233,19 @@ class PatchApplyingStubAgent(Agent):
             return
         try:
             await shell.write_text("/stub-apply.patch", self.diff_text)
-            result = await shell.conn.run("git apply --whitespace=nowarn stub-apply.patch")
+        except Exception as exc:
+            run.trace.content = (
+                f"stub patch write failed: {exc}"
+                f" stderr={getattr(exc, 'stderr', None)!r}"
+                f" stdout={getattr(exc, 'stdout', None)!r}"
+            )
+            return
+        try:
+            result = await shell.conn.run(
+                "pwd; id -u; wc -c stub-apply.patch; "
+                "head -n 2 stub-apply.patch; "
+                "git apply --whitespace=nowarn stub-apply.patch"
+            )
             if result.exit_status != 0:
                 run.trace.content = (
                     f"stub patch apply failed: {(result.stderr or '')[:2000]}"
@@ -237,7 +253,11 @@ class PatchApplyingStubAgent(Agent):
                 return
             await shell.conn.run("rm -f stub-apply.patch")
         except Exception as exc:
-            run.trace.content = f"stub patch apply failed: {exc}"
+            run.trace.content = (
+                f"stub patch apply failed: {exc}"
+                f" stderr={getattr(exc, 'stderr', None)!r}"
+                f" stdout={getattr(exc, 'stdout', None)!r}"
+            )
         finally:
             with contextlib.suppress(Exception):
                 await shell.close()

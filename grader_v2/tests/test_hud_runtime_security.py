@@ -11,17 +11,33 @@ from grader_v2.hud import runtime
 from grader_v2.hud.env import CapabilityDroppingWorkspace
 
 
-def test_agent_command_drops_all_bubblewrap_capabilities(
+def test_agent_command_drops_all_capability_sets_after_bubblewrap_setup(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     workspace = CapabilityDroppingWorkspace(tmp_path, network=False)
     monkeypatch.setattr(workspace, "_bwrap", "/usr/bin/bwrap")
 
+    def fake_which(_name: str) -> str:
+        return "/usr/bin/setpriv"
+
+    monkeypatch.setattr("grader_v2.hud.env.shutil.which", fake_which)
+
     argv = workspace.bwrap_argv(["sh", "-c", "true"])
 
     command_boundary = argv.index("--")
-    assert argv[command_boundary - 2 : command_boundary] == ["--cap-drop", "ALL"]
     assert "--unshare-net" in argv[:command_boundary]
+    assert "--cap-drop" not in argv[:command_boundary]
+    assert argv[command_boundary + 1 :] == [
+        "/usr/bin/setpriv",
+        "--bounding-set=-all",
+        "--inh-caps=-all",
+        "--ambient-caps=-all",
+        "--no-new-privs",
+        "--",
+        "sh",
+        "-c",
+        "true",
+    ]
 
 
 def test_deployment_grants_namespace_setup_capability(
@@ -39,10 +55,8 @@ def test_deployment_grants_namespace_setup_capability(
 
     assert container.container_id == "container-id"
     argv = calls[0]
-    assert argv[argv.index("--cap-add") : argv.index("--cap-add") + 2] == [
-        "--cap-add",
-        "SYS_ADMIN",
-    ]
+    cap_adds = [argv[index + 1] for index, value in enumerate(argv) if value == "--cap-add"]
+    assert cap_adds == ["SYS_ADMIN", "NET_ADMIN"]
     assert argv.count("--security-opt") == 2
     assert "apparmor=unconfined" in argv
     assert "seccomp=unconfined" in argv

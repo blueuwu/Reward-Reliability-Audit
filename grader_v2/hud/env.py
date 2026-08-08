@@ -17,6 +17,7 @@ grading runs as an isolated subprocess against the baked-in assets
 from __future__ import annotations
 
 import os
+import shutil
 from collections.abc import AsyncGenerator, Mapping
 from pathlib import Path
 
@@ -51,7 +52,7 @@ env = Environment(name="hud-grader-audit-v2", version="2.0.0")
 
 
 class CapabilityDroppingWorkspace(Workspace):
-    """Drop container setup capabilities before an agent command starts."""
+    """Drop container setup capabilities after bwrap finishes namespace setup."""
 
     def bwrap_argv(
         self,
@@ -67,8 +68,25 @@ class CapabilityDroppingWorkspace(Workspace):
             env=env,
             inherit_host_env=inherit_host_env,
         )
+        setpriv = shutil.which("setpriv")
+        if setpriv is None:
+            raise RuntimeError("setpriv is required to drop agent capabilities")
         command_boundary = argv.index("--")
-        argv[command_boundary:command_boundary] = ["--cap-drop", "ALL"]
+        # When ``--unshare-user-try`` cannot create a user namespace, bwrap
+        # needs the container's NET_ADMIN capability until it has configured
+        # loopback in the new network namespace.  A bwrap-level ``--cap-drop``
+        # happens too early for that fallback and makes every SSH command exit
+        # before the requested command starts.  Execute setpriv *inside* the
+        # completed sandbox instead, dropping even the bounding set before the
+        # agent-controlled command is exec'd.
+        argv[command_boundary + 1 : command_boundary + 1] = [
+            setpriv,
+            "--bounding-set=-all",
+            "--inh-caps=-all",
+            "--ambient-caps=-all",
+            "--no-new-privs",
+            "--",
+        ]
         return argv
 
 
