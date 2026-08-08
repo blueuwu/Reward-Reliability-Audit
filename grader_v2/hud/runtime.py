@@ -150,14 +150,16 @@ def start_deployment_container(
 ) -> DeploymentContainer:
     """Start the deployment container with a published control channel.
 
-    The security options and ``SYS_ADMIN``/``NET_ADMIN`` capabilities are required, not
-    incidental. The HUD workspace isolates every agent SSH session with bwrap,
-    which creates nested
+    The security options and ``SYS_ADMIN``/``NET_ADMIN`` capabilities are
+    required, not incidental. The HUD workspace isolates every agent SSH
+    session with bwrap, which creates nested
     user, PID, IPC, UTS, cgroup, and network namespaces. On GitHub's Ubuntu
     runners, both the ``docker-default`` AppArmor profile and Docker's default
-    seccomp profile block parts of that namespace setup. If user-namespace
-    creation fails, ``--unshare-user-try`` silently degrades and a later
-    non-optional unshare exits with EPERM, so every agent command exits 1.
+    seccomp profile block parts of that namespace setup. Docker's protected
+    system paths also prevent bwrap from mounting the fresh ``/proc`` required
+    by its PID namespace. If user-namespace creation fails,
+    ``--unshare-user-try`` silently degrades and the remaining setup uses the
+    explicitly granted capabilities.
 
     ``SYS_ADMIN`` and ``NET_ADMIN`` are available only to bubblewrap while it
     constructs that boundary (including loopback in the new network namespace).
@@ -189,6 +191,8 @@ def start_deployment_container(
             "apparmor=unconfined",
             "--security-opt",
             "seccomp=unconfined",
+            "--security-opt",
+            "systempaths=unconfined",
             image,
         ],
         capture_output=True,

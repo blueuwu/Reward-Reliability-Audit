@@ -57,6 +57,7 @@ def test_deployment_grants_namespace_setup_capability(
     argv = calls[0]
     cap_adds = [argv[index + 1] for index, value in enumerate(argv) if value == "--cap-add"]
     assert cap_adds == ["SYS_ADMIN", "NET_ADMIN"]
-    assert argv.count("--security-opt") == 2
+    assert argv.count("--security-opt") == 3
     assert "apparmor=unconfined" in argv
     assert "seccomp=unconfined" in argv
+    assert "systempaths=unconfined" in argv

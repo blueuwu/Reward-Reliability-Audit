@@ -71,8 +71,9 @@ jobs:
           # namespace on ubuntu-24.04, and BOTH must be lifted:
           #   1. this sysctl, which denies unprivileged userns creation to
           #      AppArmor-*unconfined* processes;
-          #   2. Docker's AppArmor and seccomp profiles, which restrict nested
-          #      namespace setup -- both are lifted per-container by
+          #   2. Docker's AppArmor/seccomp profiles and protected system paths,
+          #      which restrict nested namespace and fresh /proc setup; all are
+          #      lifted per-container by
           #      start_deployment_container. SYS_ADMIN and NET_ADMIN are granted
           #      to bwrap for setup and dropped after setup by setpriv before the
           #      command runs in its sandbox.
@@ -81,7 +82,7 @@ jobs:
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
           sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
 
-      - name: Probe bwrap namespace support (diagnostic; never fails the job)
+      - name: Probe bwrap namespace support
         run: |
           set +e
           echo "== host userns policy =="
@@ -92,19 +93,20 @@ jobs:
           echo "== deployment image (also warms the build cache for pytest) =="
           IMAGE=$(uv run python -c "from pathlib import Path; from grader_v2.hud.runtime import resolve_deployment_image; print(resolve_deployment_image(Path('.'), build=True))" | tail -1)
           echo "image=$IMAGE"
-          BW="bwrap --die-with-parent --unshare-user-try --unshare-pid --unshare-ipc --unshare-uts --unshare-cgroup-try --unshare-net --bind / / -- setpriv --bounding-set=-all --inh-caps=-all --ambient-caps=-all --no-new-privs -- true"
+          BW="bwrap --die-with-parent --unshare-user-try --unshare-pid --unshare-ipc --unshare-uts --unshare-cgroup-try --unshare-net --bind / / --proc /proc -- setpriv --bounding-set=-all --inh-caps=-all --ambient-caps=-all --no-new-privs -- true"
           probe() {
             docker run --rm $1 "$IMAGE" sh -c "$BW" >/dev/null 2>/tmp/bwrap-err
             rc=$?
             echo "  exit=$rc opts='${1:-<none>}' err=$(tr '\n' ' ' </tmp/bwrap-err | cut -c1-200)"
+            return "$rc"
           }
           echo "== bwrap under candidate docker flags =="
           probe ""
           probe "--security-opt apparmor=unconfined"
           probe "--security-opt seccomp=unconfined"
           probe "--security-opt apparmor=unconfined --security-opt seccomp=unconfined"
-          probe "--cap-add SYS_ADMIN --cap-add NET_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined"
-          exit 0
+          probe "--cap-add SYS_ADMIN --cap-add NET_ADMIN --security-opt apparmor=unconfined --security-opt seccomp=unconfined --security-opt systempaths=unconfined"
+          exit $?
 
       - name: Doctor (strict Docker mode)
         run: GRADER_AUDIT_REQUIRE_DOCKER=1 uv run grader-audit doctor
