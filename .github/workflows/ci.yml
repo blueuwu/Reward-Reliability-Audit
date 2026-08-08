@@ -148,8 +148,13 @@ jobs:
           git config user.name "grader-audit CI"
           git config user.email "grader-audit-ci@example.com"
 
-      - name: Pytest (unit; deployment-container tests require Linux Docker)
-        run: uv run pytest -q tests grader_v2/tests --ignore=grader_v2/tests/test_deployment_container.py
+      - name: Pytest (Windows orchestration; exclude Linux-Docker tests)
+        # windows-latest exposes a Windows-container Docker daemon. It is
+        # reachable, but cannot build the suite's linux/amd64 task images.
+        # The only skipif-marked tests are the Linux-Docker integration gates;
+        # deselect them unconditionally while retaining the non-Docker tests in
+        # those same integration modules.
+        run: uv run pytest -q -m "not skipif" tests grader_v2/tests
 
       - name: Publication validation (read-only)
         run: uv run grader-v2 publication --mode validate
